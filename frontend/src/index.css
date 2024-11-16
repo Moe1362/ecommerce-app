@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
-  
+body {
+  background: #0f0f10;
+  color: #fff;
+}
+
+input, textarea {
+  color: #000;
 }
