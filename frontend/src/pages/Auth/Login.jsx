@@ -4,11 +4,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLoginMutation } from "../../redux/api/usersApiSlice";
 import { setCredientials } from "../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
-import Loader from "../../components/Loader";
+import { Loader2 } from "lucide-react";
+import back from '../../assets/back.mp4';
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isMount, setIsMount] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -20,92 +22,112 @@ const Login = () => {
   const sp = new URLSearchParams(search);
   const redirect = sp.get("redirect") || "/";
 
-  // Redirect if the user is already logged in
   useEffect(() => {
+    setIsMount(true);
     if (userInfo) {
       navigate(redirect);
     }
   }, [navigate, userInfo, redirect]);
 
-  // Form submit handler
   const submitHandler = async (e) => {
     e.preventDefault();
     try {
-      // Perform login using the API mutation
       const res = await login({ email, password }).unwrap();
-      console.log(res);
-      dispatch(setCredientials({ ...res })); // Corrected dispatch
-      navigate(redirect); // Redirect after successful login
+      dispatch(setCredientials({ ...res }));
+      navigate(redirect);
     } catch (error) {
       toast.error(error?.data?.message || error.message);
     }
   };
 
   return (
-    <div>
-      <section className="pl-[10rem] flex flex-wrap">
-        <div className="mr-[4rem] mt-[5rem]">
-          <h1 className="text-2xl font-semibold mb-4">Sign In</h1>
-          <form onSubmit={submitHandler} className="container w-[25rem]">
-            <div className="my-[2rem]">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-white"
+    <div className="relative min-h-screen font-mono flex justify-center items-center">
+      {/* Video Background */}
+      <video
+        autoPlay
+        loop
+        muted
+        className="absolute top-0 left-0 w-full h-full object-cover"
+      >
+        <source src={back} type="video/mp4" />
+      </video>
+
+      {/* Overlay */}
+      <div className="absolute top-0 left-0 w-full h-full bg-black/40 backdrop-blur-sm" />
+
+      {/* Login Form */}
+      <div 
+        className={`relative z-10 w-full max-w-md transform transition-all duration-700 px-4 ${
+          isMount ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+        }`}
+      >
+        <div className="backdrop-blur-md bg-black/30 rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+          <div className="p-8">
+            <h1 className="text-4xl font-bold mb-8 text-white text-center">
+              Welcome Back
+            </h1>
+            <form onSubmit={submitHandler} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/80">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white 
+                           placeholder-white/50 focus:border-white/40 focus:ring-2 focus:ring-white/20 
+                           transition-all duration-300 backdrop-blur-sm"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-white/80">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white 
+                           placeholder-white/50 focus:border-white/40 focus:ring-2 focus:ring-white/20 
+                           transition-all duration-300 backdrop-blur-sm"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+              <button
+                disabled={isLoading}
+                type="submit"
+                className="w-full py-3 px-4 rounded-lg bg-white/20 hover:bg-white/30 text-white font-medium
+                         border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/20 
+                         transition-all duration-300 backdrop-blur-sm transform hover:scale-[1.02]"
               >
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="mt-1 p-2 w-full border rounded"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Signing in...
+                  </span>
+                ) : (
+                  "Sign In"
+                )}
+              </button>
+            </form>
+            <div className="mt-8 text-center">
+              <p className="text-white/70">
+                New Customer?{" "}
+                <Link
+                  to={redirect ? `/register?redirect=${redirect}` : "/register"}
+                  className="text-white hover:text-white/80 underline transition-colors duration-300"
+                >
+                  Register
+                </Link>
+              </p>
             </div>
-            <div className="my-[2rem]">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-white"
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                className="mt-1 p-2 w-full border rounded"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button
-              disabled={isLoading}
-              type="submit"
-              className="bg-pink-500 text-black px-4 py-2 rounded cursor-pointer my-[1rem]"
-            >
-              {isLoading ? "Signing in..." : "Sign In"}
-            </button>
-            {isLoading && <Loader />}
-          </form>
-          <div className="mt-4">
-            <p className="text-white">
-              New Customer?{" "}
-              <Link
-                to={redirect ? `/register?redirect=${redirect}` : "/register"}
-                className="text-pink-500 hover:underline"
-              >
-                Register
-              </Link>
-            </p>
           </div>
         </div>
-        <img
-          src="https://pbs.twimg.com/media/DuocnPqU8AAMKRI.jpg"
-          alt="3D Flip Effect"
-          class="h-[45rem] w-[59%] xl:block md:hidden sm:hidden rounded-lg animate-flip"
-        />
-      </section>
+      </div>
     </div>
   );
 };
