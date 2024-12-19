@@ -10,30 +10,12 @@ import { Store, Clock, Package2, ShoppingCart, ArrowLeft, Star } from "lucide-re
 import moment from "moment";
 import HeartIcon from "./HeartIcon";
 import ProductLoader from "../../components/ProductLoader";
+import RelatedProducts from "../../components/RelatedProducts";
 import { addToCart } from "../../redux/features/cart/cartSlice";
 import back7 from "../../assets/back7.mp4";
 
 const SIZES = ["XS", "S", "M", "L", "XL"];
 const COLORS = ["Black", "White", "Red", "Blue", "Green"];
-
-const RelatedProduct = ({ product, onClick }) => (
-  <div 
-    onClick={onClick}
-    className="group cursor-pointer relative overflow-hidden rounded-lg bg-white/5 border border-white/10"
-  >
-    <div className="aspect-square">
-      <img 
-        src={product.image} 
-        alt={product.name}
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-      />
-    </div>
-    <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/60 backdrop-blur-sm">
-      <h3 className="text-white font-semibold truncate">{product.name}</h3>
-      <p className="text-white/70 mt-1">${product.price}</p>
-    </div>
-  </div>
-);
 
 const ProductDetails = () => {
   const { id: productId } = useParams();
@@ -54,7 +36,9 @@ const ProductDetails = () => {
   } = useGetProductDetailsQuery(productId);
 
   const { data: relatedProducts, isLoading: relatedProductsLoading } = 
-    useGetProductsByCategoryQuery(product?.category?._id || "");
+    useGetProductsByCategoryQuery(product?.category?._id || "", {
+      skip: !product?.category?._id,
+    });
 
   useEffect(() => {
     setIsMount(true);
@@ -79,11 +63,6 @@ const ProductDetails = () => {
     navigate("/cart");
   };
 
-  const handleRelatedProductClick = (productId) => {
-    navigate(`/product/${productId}`);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
     <div className="relative min-h-screen font-mono">
       <video
@@ -99,7 +78,7 @@ const ProductDetails = () => {
 
       <div className="relative z-10 container mx-auto px-4 py-8">
         <Link 
-          to="/"
+          to="/shop"
           className="inline-flex items-center text-white/70 hover:text-white mb-8 
             group border border-white/10 px-4 py-2 rounded-lg bg-white/5 
             backdrop-blur-sm transition-all duration-300 hover:bg-white/10"
@@ -241,34 +220,41 @@ const ProductDetails = () => {
             </div>
 
             {/* Related Products Section */}
-            {!relatedProductsLoading && relatedProducts && relatedProducts.length > 1 && (
-              <div className="mt-16">
-                <h2 className="text-2xl font-bold text-white mb-8">Related Products</h2>
+            <div className="mt-16">
+              {relatedProductsLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {relatedProducts
-                    .filter(p => p._id !== productId)
-                    .slice(0, 4)
-                    .map((product, index) => (
-                      <div 
-                        key={product._id}
-                        className="animate-fadeIn"
-                        style={{ animationDelay: `${index * 100}ms` }}
-                      >
-                        <RelatedProduct
-                          product={product}
-                          onClick={() => handleRelatedProductClick(product._id)}
-                        />
-                      </div>
+                  {[...Array(4)].map((_, index) => (
+                    <div key={index} className="animate-pulse">
+                      <div className="bg-white/5 rounded-xl aspect-square mb-4" />
+                      <div className="bg-white/5 h-4 rounded mb-2 w-3/4" />
+                      <div className="bg-white/5 h-4 rounded w-1/4" />
+                    </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : relatedProducts?.length > 1 ? (
+                <RelatedProducts 
+                  products={relatedProducts.filter(p => p._id !== productId)}
+                  currentProductId={productId}
+                />
+              ) : null}
+            </div>
           </div>
         )}
       </div>
 
       <style jsx>{`
         @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes fadeSlideUp {
           from {
             opacity: 0;
             transform: translateY(20px);

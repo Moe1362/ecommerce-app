@@ -37,7 +37,7 @@ const Favorites = () => {
             <h2 className="text-3xl font-bold text-white mb-4">No Favorites Yet</h2>
             <p className="text-white/70 mb-8">Start adding some products to your favorites!</p>
             <Link 
-              to="/products" 
+              to="/shop" 
               className="inline-flex items-center px-6 py-3 rounded-lg bg-white/20 text-white
                 hover:bg-white/30 transition-all duration-300 border border-white/10"
             >
