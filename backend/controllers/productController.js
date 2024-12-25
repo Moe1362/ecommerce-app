@@ -130,55 +130,7 @@ const fetchAllProducts = asyncHandler(async (req, res) => {
 });
 
 
-// Add Product Review
-const addProductReview = asyncHandler(async (req, res) => {
-  try {
-    const { rating, comment } = req.body;
 
-    // Find the product by ID
-    const product = await Product.findById(req.params.id);
-
-    if (product) {
-      // Check if the user has already reviewed this product
-      const alreadyReviewed = product.review.find(
-        (r) => r.user.toString() === req.user._id.toString()
-      );
-
-      if (alreadyReviewed) {
-        res.status(400);
-        throw new Error("Product already reviewed");
-      }
-
-      // Create the new review object
-      const review = {
-        name: req.user.username,
-        rating: Number(rating),
-        comment,
-        user: req.user._id,
-      };
-
-      // Push the review to the product's review array
-      product.review.push(review);
-
-      // Update the number of reviews and average rating
-      product.numReviews = product.review.length;
-      product.rating =
-        product.review.reduce((acc, item) => item.rating + acc, 0) /
-        product.review.length;
-
-      // Save the product with the updated review
-      await product.save();
-
-      res.status(201).json({ message: "Review added" });
-    } else {
-      res.status(404);
-      throw new Error("Product not found");
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error: error.message });
-  }
-});
 
 // Fetch Top Products
 const fetchTopProducts = asyncHandler(async (req, res) => {
@@ -232,7 +184,6 @@ export {
   fetchProducts,
   fetchProductById,
   fetchAllProducts,
-  addProductReview,
   fetchTopProducts,
   fetchNewProducts,
   filterProducts,
