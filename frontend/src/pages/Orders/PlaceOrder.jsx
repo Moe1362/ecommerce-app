@@ -121,8 +121,9 @@ return (
                           className="w-16 h-16 object-cover rounded-lg ring-2 ring-pink-400 
                             group-hover:ring-yellow-300 transition-all"
                         />
+                        {console.log(item)}
                         <Link 
-                          to={`/product/${item.product}`}
+                          to={`/product/${item._id}`}
                           className="text-zinc-950 font-extrabold hover:text-zinc-800 transition-colors"
                         >
                           {item.name}

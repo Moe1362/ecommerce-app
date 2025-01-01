@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 const { ObjectId } = mongoose.Schema;
 
 const productSchema = mongoose.Schema(
@@ -8,27 +8,15 @@ const productSchema = mongoose.Schema(
       required: true,
     },
     image: {
-      type: String,
+      type: Array,
       required: true,
-    },
-    color: {
-      type: String,
     },
     size: {
-      type: String,
-    },
-    brand: {
-      type: String,
-      required: true,
-    },
-    quantity: {
-      type: Number,
-      required: true,
-      default: 0,
+      type: Array,
     },
     category: {
       type: ObjectId,
-      ref: "Category",
+      ref: 'Category',
       required: true,
     },
     description: {
@@ -41,10 +29,8 @@ const productSchema = mongoose.Schema(
       required: true,
       default: 0,
     },
-    countInStock: {
-      type: Number,
-      required: true,
-      default: 0,
+    popular: {
+      type: Boolean,
     },
   },
   { timestamps: true }
@@ -52,5 +38,5 @@ const productSchema = mongoose.Schema(
 
 productSchema.index({ createdAt: -1 });
 
-const Product = mongoose.model("Product", productSchema);
+const Product = mongoose.model('Product', productSchema);
 export default Product;
