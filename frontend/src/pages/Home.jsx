@@ -4,8 +4,7 @@ import Loader from "../components/Loader";
 import Header from "../components/Header";
 import Message from "../components/Message";
 import HeartIcon from "./Products/HeartIcon";
-import { useRef } from 'react';
-import Footer from "../components/Footer";
+
 
 const StyledProduct = ({ product }) => (
   <div className="relative w-full h-full group">
@@ -28,7 +27,7 @@ const Home = () => {
   const { data, isError, isLoading } = useGetProductsQuery({ keyword });
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+    <div className="flex flex-col min-h-screen ">
       {!keyword && <Header />}
       <div className="flex-grow relative z-10">
         {isLoading ? (

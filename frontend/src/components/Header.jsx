@@ -1,95 +1,16 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import { useGetTopProductsQuery } from "../redux/api/productApiSlice";
 import Loader from "./Loader";
 import SmallProduct from "../pages/Products/SmallProduct";
 import ProductCarousel from "../pages/Products/ProductCarousel";
-import * as THREE from "three";
 
 const Header = () => {
   const { data, error, isLoading } = useGetTopProductsQuery();
-  const canvasRef = useRef(null);
   const featuredProductsRef = useRef(null);
-
-  useEffect(() => {
-    if (isLoading) return;
-    if (error) return;
-
-    const canvas = canvasRef.current;
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    );
-    camera.position.z = 5;
-
-    // Create a starry sky
-    const starGeometry = new THREE.BufferGeometry();
-    const starCount = 3000;
-    const starPositions = new Float32Array(starCount * 3);
-
-    for (let i = 0; i < starCount; i++) {
-      starPositions[i * 3] = (Math.random() - 0.5) * 100;
-      starPositions[i * 3 + 1] = (Math.random() - 0.5) * 100;
-      starPositions[i * 3 + 2] = (Math.random() - 0.5) * 100;
-    }
-
-    starGeometry.setAttribute(
-      "position",
-      new THREE.BufferAttribute(starPositions, 3)
-    );
-
-    const starMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.1,
-      transparent: true,
-    });
-
-    const stars = new THREE.Points(starGeometry, starMaterial);
-    scene.add(stars);
-
-    // Animate the starry sky
-    const animate = () => {
-      requestAnimationFrame(animate);
-      stars.rotation.x += 0.0005;
-      stars.rotation.y += 0.0005;
-      renderer.render(scene, camera);
-    };
-
-    animate();
-
-    // Scrolling effect for featured products
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("animate-fade-in");
-          } else {
-            entry.target.classList.remove("animate-fade-in");
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
-    const featuredProducts = featuredProductsRef.current.children;
-    Array.from(featuredProducts).forEach((product) => {
-      observer.observe(product);
-    });
-
-    return () => {
-      renderer.dispose();
-      observer.disconnect();
-    };
-  }, [isLoading, error]);
 
   if (isLoading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f0f10]">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
         <div className="scale-150">
           <Loader />
         </div>
@@ -98,7 +19,7 @@ const Header = () => {
 
   if (error)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0f0f10]">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
         <h2 className="text-red-400 text-xl font-mono animate-pulse">
           {error}
         </h2>
@@ -106,10 +27,12 @@ const Header = () => {
     );
 
   return (
-    <div className="min-h-screen overflow-hidden">
+    <div className="min-h-screen overflow-hidden ">
       {/* Background Effects */}
       <div className="fixed inset-0 pointer-events-none">
-        <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" />
+        {/* Animated gradient orbs */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/20 rounded-full filter blur-[100px] animate-float-slow" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-pink-500/20 rounded-full filter blur-[100px] animate-float-slow-delay" />
       </div>
 
       {/* Content Container */}
@@ -155,7 +78,7 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Custom Scrollbar Styles */}
+      {/* Custom Styles */}
       <style jsx global>{`
         ::-webkit-scrollbar {
           width: 6px;
@@ -175,9 +98,23 @@ const Header = () => {
         }
 
         @keyframes floatGradient {
-          0% { transform: translate(0, 0); }
-          50% { transform: translate(-10px, -10px); }
-          100% { transform: translate(0, 0); }
+          0% { transform: translate(0, 0) rotate(0deg); }
+          50% { transform: translate(-10px, -10px) rotate(180deg); }
+          100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        @keyframes floatGradientDelay {
+          0% { transform: translate(0, 0) rotate(180deg); }
+          50% { transform: translate(10px, 10px) rotate(360deg); }
+          100% { transform: translate(0, 0) rotate(540deg); }
+        }
+
+        .animate-float-slow {
+          animation: floatGradient 15s ease-in-out infinite;
+        }
+
+        .animate-float-slow-delay {
+          animation: floatGradientDelay 18s ease-in-out infinite;
         }
 
         @keyframes fade-in {
