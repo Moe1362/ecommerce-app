@@ -4,8 +4,6 @@ import Loader from "../components/Loader";
 import Header from "../components/Header";
 import Message from "../components/Message";
 import HeartIcon from "./Products/HeartIcon";
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Stars } from '@react-three/drei';
 import { useRef } from 'react';
 import Footer from "../components/Footer";
 
@@ -25,35 +23,12 @@ const StyledProduct = ({ product }) => (
   </div>
 );
 
-function RotatingStars() {
-  const starsRef = useRef();
-  useFrame(() => {
-    if (starsRef.current) {
-      starsRef.current.rotation.x += 0.0001;
-      starsRef.current.rotation.y += 0.0001;
-    }
-  });
-  return <Stars ref={starsRef} radius={300} depth={50} count={5000} factor={4} saturation={0} fade />;
-}
-
-function StarrySky() {
-  return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -1 }}>
-      <Canvas>
-        <color attach="background" args={['#0f0f10']} />
-        <RotatingStars />
-      </Canvas>
-    </div>
-  );
-}
-
 const Home = () => {
   const { keyword } = useParams();
   const { data, isError, isLoading } = useGetProductsQuery({ keyword });
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <StarrySky />
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
       {!keyword && <Header />}
       <div className="flex-grow relative z-10">
         {isLoading ? (
@@ -146,7 +121,6 @@ const Home = () => {
           </div>
         )}
       </div>
-     
 
       <style jsx global>{`
         @keyframes shine {
