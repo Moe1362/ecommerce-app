@@ -81,17 +81,17 @@ const Footer = () => {
               {[
                 { 
                   icon: FaMapMarkerAlt, 
-                  text: "123 Street Name, City, Country" 
+                  text: "San Jose, CA" 
                 },
                 { 
                   icon: FaPhone, 
-                  text: "+1 234 567 8900",
-                  link: "tel:+12345678900"
+                  text: "+1 4086697779",
+                  link: "tel:+14086697779"
                 },
                 { 
                   icon: FaEnvelope, 
-                  text: "contact@nilish.com",
-                  link: "mailto:contact@nilish.com"
+                  text: "moe.abbasi1983@gmail.com",
+                  link: "mailto:moe.abbasi1983@gmail.com"
                 },
               ].map((item, index) => (
                 <li key={index} className="group">
