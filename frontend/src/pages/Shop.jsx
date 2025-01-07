@@ -84,9 +84,7 @@ const Shop = () => {
 
   return (
     <div className="relative min-h-screen font-mono">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-
-      <div className="relative z-10 container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+       <div className="relative z-10 container mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center space-x-3">
