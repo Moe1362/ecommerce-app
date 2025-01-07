@@ -21,9 +21,6 @@ const Favorites = () => {
   if (favorites.length === 0) {
     return (
       <div className="relative min-h-screen font-mono flex items-center justify-center">
-        
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-        
         <div className="relative z-10 text-center p-8">
           <div className="backdrop-blur-md bg-black/30 rounded-xl p-8 border border-white/10">
             <div className="text-6xl mb-6">💝</div>
