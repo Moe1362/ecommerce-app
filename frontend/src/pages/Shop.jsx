@@ -31,30 +31,25 @@ const Shop = () => {
       .sort()
     : [];
 
-  // Handle categories data
   useEffect(() => {
     if (!categoriesQuery.isLoading && categoriesQuery.data) {
       dispatch(setCategories(categoriesQuery.data));
     }
   }, [categoriesQuery.data, dispatch]);
 
-  // Handle filtering logic
   useEffect(() => {
     if (!filteredProductsQuery.isLoading && filteredProductsQuery.data) {
       let result = [...filteredProductsQuery.data];
 
-      // Apply brand filter
       if (radio.length) {
         result = result.filter(product => radio.includes(product.brand));
       }
 
-      // Apply price filter
       if (priceFilter) {
         const price = parseFloat(priceFilter);
         result = result.filter(product => product.price <= price);
       }
 
-      // Update both redux store and local state
       dispatch(setProducts(result));
       setFilteredProducts(result);
     }
@@ -84,7 +79,7 @@ const Shop = () => {
 
   return (
     <div className="relative min-h-screen font-mono">
-       <div className="relative z-10 container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 container mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center space-x-3">
@@ -108,15 +103,21 @@ const Shop = () => {
           {/* Filter Panel */}
           <div 
             className={`lg:w-[300px] ${
-              isFilterOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-            } transition-all duration-500 fixed lg:relative top-0 left-0 h-full 
-            lg:h-auto z-50 lg:z-0`}
+              isFilterOpen ? 'fixed inset-y-0 right-0 w-[80%] sm:w-[60%] md:w-[40%] translate-x-0' : 'translate-x-full lg:translate-x-0'
+            } transition-transform duration-300 lg:relative lg:translate-x-0 z-50`}
           >
-            <div className="h-full lg:h-auto bg-violet-200/90 backdrop-blur-xl p-6 rounded-2xl 
-              border-2 border-pink-400 hover:border-yellow-300 transition-all duration-300
-              overflow-y-auto shadow-xl">
-              {/* Filter Sections */}
-              <div className="space-y-8">
+            <div className="h-full overflow-y-auto bg-violet-200/90 backdrop-blur-xl p-6 rounded-l-2xl lg:rounded-2xl 
+              border-2 border-pink-400 hover:border-yellow-300 transition-all duration-300 shadow-xl">
+              {/* Close button for mobile */}
+              <button
+                onClick={() => setIsFilterOpen(false)}
+                className="lg:hidden absolute top-4 right-4 p-2 rounded-full bg-violet-300/50 
+                  hover:bg-violet-400/50 transition-colors duration-300"
+              >
+                <FaTimes size={20} />
+              </button>
+
+              <div className="space-y-8 mt-12 lg:mt-0">
                 {/* Categories */}
                 <div>
                   <h2 className="text-xl font-extrabold text-zinc-950 mb-4">Categories</h2>
@@ -136,8 +137,7 @@ const Shop = () => {
                         />
                         <label
                           htmlFor={`category-${c._id}`}
-                          className="ml-3 text-zinc-950 font-bold cursor-pointer group-hover:text-zinc-900 
-                            transition-colors duration-300"
+                          className="ml-3 text-zinc-950 font-bold cursor-pointer group-hover:text-zinc-900"
                         >
                           {c.name}
                         </label>
@@ -166,8 +166,7 @@ const Shop = () => {
                         />
                         <label
                           htmlFor={`brand-${brand}`}
-                          className="ml-3 text-zinc-950 font-bold cursor-pointer group-hover:text-zinc-900 
-                            transition-colors duration-300"
+                          className="ml-3 text-zinc-950 font-bold cursor-pointer"
                         >
                           {brand}
                         </label>
@@ -188,8 +187,7 @@ const Shop = () => {
                       onChange={(e) => setPriceFilter(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 bg-violet-300/50 border-2 border-pink-400 
                         rounded-lg text-zinc-950 font-bold placeholder-zinc-900/50 outline-none 
-                        focus:border-yellow-300 hover:border-yellow-300
-                        transition-all duration-300"
+                        focus:border-yellow-300 transition-all duration-300"
                     />
                   </div>
                 </div>
@@ -247,7 +245,7 @@ const Shop = () => {
       {/* Mobile Overlay */}
       {isFilterOpen && (
         <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setIsFilterOpen(false)}
         />
       )}
