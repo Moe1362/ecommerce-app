@@ -41,17 +41,6 @@ const Favorites = () => {
 
   return (
     <div className="relative min-h-screen font-mono">
-      {/* Video Background */}
-      <video
-        autoPlay
-        loop
-        muted
-        className="fixed top-0 left-0 w-full h-full object-cover"
-      >
-        <source src={back5} type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-
       {/* Content */}
       <div className="relative z-10 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-8xl mx-auto">
