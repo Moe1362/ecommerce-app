@@ -3,7 +3,7 @@ import { selectFavoriteProduct } from "../../redux/features/favorites/favoriteSl
 import HeartIcon from "./HeartIcon";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import back5 from "../../assets/back5.mp4";
+
 
 const Favorites = () => {
   const favorites = useSelector(selectFavoriteProduct);
@@ -21,14 +21,7 @@ const Favorites = () => {
   if (favorites.length === 0) {
     return (
       <div className="relative min-h-screen font-mono flex items-center justify-center">
-        <video
-          autoPlay
-          loop
-          muted
-          className="absolute top-0 left-0 w-full h-full object-cover"
-        >
-          <source src={back5} type="video/mp4" />
-        </video>
+        
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
         
         <div className="relative z-10 text-center p-8">

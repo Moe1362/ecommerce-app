@@ -5,7 +5,7 @@ import { useLoginMutation } from "../../redux/api/usersApiSlice";
 import { setCredientials } from "../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
-import back from '../../assets/back.mp4';
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -42,18 +42,9 @@ const Login = () => {
 
   return (
     <div className="relative min-h-screen font-mono flex justify-center items-center">
-      {/* Video Background */}
-      <video
-        autoPlay
-        loop
-        muted
-        className="absolute top-0 left-0 w-full h-full object-cover"
-      >
-        <source src={back} type="video/mp4" />
-      </video>
+      
 
-      {/* Overlay */}
-      <div className="absolute top-0 left-0 w-full h-full bg-black/40 backdrop-blur-sm" />
+      
 
       {/* Login Form */}
       <div 
