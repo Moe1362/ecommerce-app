@@ -1,34 +1,32 @@
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useGetFilteredProductsQuery } from "../redux/api/productApiSlice";
-import { useFetchCategoriesQuery } from "../redux/api/categoryApiSlice";
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { useGetFilteredProductsQuery } from '../redux/api/productApiSlice';
+import { useFetchCategoriesQuery } from '../redux/api/categoryApiSlice';
 import {
   setCategories,
   setProducts,
   setChecked,
   setRadio,
-} from "../redux/features/shop/shopSlice";
-import { FaFilter, FaTimes, FaSearch, FaShoppingBag } from "react-icons/fa";
-import Loader from "../components/Loader";
-import ProductCard from "../pages/Products/ProductCard";
+} from '../redux/features/shop/shopSlice';
+import { FaFilter, FaTimes, FaSearch, FaShoppingBag } from 'react-icons/fa';
+import Loader from '../components/Loader';
+import ProductCard from '../pages/Products/ProductCard';
 
 const Shop = () => {
   const dispatch = useDispatch();
   const { categories, products, checked, radio } = useSelector((state) => state.shop);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [priceFilter, setPriceFilter] = useState("");
+  const [priceFilter, setPriceFilter] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   const categoriesQuery = useFetchCategoriesQuery();
-  const filteredProductsQuery = useGetFilteredProductsQuery({
-    checked,
-    radio,
-  });
+  const filteredProductsQuery = useGetFilteredProductsQuery({ checked, radio });
 
   const uniqueBrands = filteredProductsQuery.data
-    ? [...new Set(filteredProductsQuery.data.map(product => product.brand))]
-      .filter(Boolean)
-      .sort()
+    ? [...new Set(filteredProductsQuery.data.map((product) => product.brand))]
+        .filter(Boolean)
+        .sort()
     : [];
 
   useEffect(() => {
@@ -42,12 +40,12 @@ const Shop = () => {
       let result = [...filteredProductsQuery.data];
 
       if (radio.length) {
-        result = result.filter(product => radio.includes(product.brand));
+        result = result.filter((product) => radio.includes(product.brand));
       }
 
       if (priceFilter) {
         const price = parseFloat(priceFilter);
-        result = result.filter(product => product.price <= price);
+        result = result.filter((product) => product.price <= price);
       }
 
       dispatch(setProducts(result));
@@ -56,12 +54,9 @@ const Shop = () => {
   }, [filteredProductsQuery.data, radio, priceFilter, dispatch]);
 
   const handleCheck = (value, id) => {
-    let updatedChecked = [...checked];
-    if (value) {
-      updatedChecked.push(id);
-    } else {
-      updatedChecked = updatedChecked.filter((item) => item !== id);
-    }
+    const updatedChecked = value 
+      ? [...checked, id]
+      : checked.filter(item => item !== id);
     dispatch(setChecked(updatedChecked));
   };
 
@@ -70,209 +65,237 @@ const Shop = () => {
     setIsFilterOpen(false);
   };
 
+  const handleCategoryClick = (categoryId) => {
+  dispatch(setChecked([categoryId]));
+  if (window.innerWidth < 1024) {
+    setIsFilterOpen(false);
+  }
+};
+
   const handleReset = () => {
     dispatch(setChecked([]));
     dispatch(setRadio([]));
-    setPriceFilter("");
+    setPriceFilter('');
     setIsFilterOpen(false);
   };
 
+  // Background Particle Animation
+  const BackgroundParticles = () => (
+    <>
+      {[...Array(20)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            x: Math.random() * window.innerWidth, 
+            y: Math.random() * window.innerHeight,
+            opacity: 0 
+          }}
+          animate={{ 
+            x: [
+              Math.random() * window.innerWidth, 
+              Math.random() * window.innerWidth
+            ],
+            y: [
+              Math.random() * window.innerHeight, 
+              Math.random() * window.innerHeight
+            ],
+            opacity: [0.1, 0.3, 0.1],
+            scale: [0.5, 1, 0.5]
+          }}
+          transition={{ 
+            duration: 20, 
+            repeat: Infinity,
+            repeatType: "mirror",
+            ease: "easeInOut"
+          }}
+          className="absolute w-16 h-16 rounded-full 
+            bg-gradient-to-br from-gray-500/20 to-gray-700/20 
+            "
+        />
+      ))}
+    </>
+  );
+
   return (
-    <div className="relative min-h-screen font-mono">
-      <div className="relative z-10 container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="relative min-h-screen ">
+      {/* Animated Background */}
+      <div className="absolute inset-0 z-0">
+        <BackgroundParticles />
+        
+        {/* Subtle Geometric Pattern */}
+        <div className="absolute inset-0 opacity-[0.05] 
+          bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] 
+          from-gray-900 via-gray-800 to-black"></div>
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header Section */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center space-x-3">
-            <FaShoppingBag className="text-violet-200/90 text-2xl animate-bounce-slow" />
-            <h1 className="text-3xl font-extrabold text-violet-200/90">
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="flex justify-between items-center mb-8"
+        >
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold 
+              bg-gradient-to-r from-gray-300 to-gray-200 
+              bg-clip-text text-transparent">
               Our Shop
             </h1>
+            <p className="text-gray-300 mt-1">Browse our collection</p>
           </div>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="lg:hidden px-4 py-2 bg-violet-200/90 backdrop-blur-md text-zinc-950 rounded-xl 
-              flex items-center space-x-2 hover:bg-violet-300/90 border-2 border-pink-400 
-              hover:border-yellow-300 font-extrabold transition-all duration-300 transform hover:scale-105"
+            className="lg:hidden px-4 py-2 
+              bg-gray-800/30 border border-gray-700/50 
+              rounded-xl text-gray-300
+              hover:bg-gray-700/40 hover:border-gray-600/50 
+              transition-all duration-300
+              flex items-center space-x-2"
           >
             {isFilterOpen ? <FaTimes size={18} /> : <FaFilter size={18} />}
-            <span>{isFilterOpen ? "Close" : "Filters"}</span>
-          </button>
-        </div>
+            <span>{isFilterOpen ? 'Close' : 'Filters'}</span>
+          </motion.button>
+        </motion.div>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filter Panel */}
-          <div 
-            className={`lg:w-[300px] ${
-              isFilterOpen ? 'fixed inset-y-0 right-0 w-[80%] sm:w-[60%] md:w-[40%] translate-x-0' : 'translate-x-full lg:translate-x-0'
-            } transition-transform duration-300 lg:relative lg:translate-x-0 z-50`}
+          <motion.div 
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className={`lg:w-72 ${
+              isFilterOpen 
+                ? 'fixed inset-0 z-50 lg:relative lg:inset-auto p-4 lg:p-0' 
+                : 'hidden lg:block'
+            }`}
           >
-            <div className="h-full overflow-y-auto bg-violet-200/90 backdrop-blur-xl p-6 rounded-l-2xl lg:rounded-2xl 
-              border-2 border-pink-400 hover:border-yellow-300 transition-all duration-300 shadow-xl">
+            <div className="bg-gray-900/80 backdrop-blur-md 
+              rounded-2xl border border-gray-800/50 p-6 
+              overflow-auto h-full">
               {/* Close button for mobile */}
-              <button
-                onClick={() => setIsFilterOpen(false)}
-                className="lg:hidden absolute top-4 right-4 p-2 rounded-full bg-violet-300/50 
-                  hover:bg-violet-400/50 transition-colors duration-300"
-              >
-                <FaTimes size={20} />
-              </button>
+              <div className="flex justify-between items-center mb-6 lg:hidden">
+                <h2 className="text-lg font-medium text-white">Filters</h2>
+                <motion.button 
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setIsFilterOpen(false)}
+                  className="p-2 text-gray-400 hover:text-cyan-400 transition-colors"
+                >
+                  <FaTimes size={20} />
+                </motion.button>
+              </div>
 
-              <div className="space-y-8 mt-12 lg:mt-0">
+              {/* Filter Content */}
+              <div className="space-y-6">
                 {/* Categories */}
-                <div>
-                  <h2 className="text-xl font-extrabold text-zinc-950 mb-4">Categories</h2>
-                  <div className="space-y-2">
-                    {categories?.map((c) => (
-                      <div 
-                        key={c._id}
-                        className="group flex items-center p-2 rounded-lg hover:bg-violet-300/50 
-                          transition-all duration-300 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          id={`category-${c._id}`}
-                          checked={checked.includes(c._id)}
-                          onChange={(e) => handleCheck(e.target.checked, c._id)}
-                          className="w-4 h-4 accent-pink-400 cursor-pointer"
-                        />
-                        <label
-                          htmlFor={`category-${c._id}`}
-                          className="ml-3 text-zinc-950 font-bold cursor-pointer group-hover:text-zinc-900"
-                        >
-                          {c.name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+<div>
+  <h2 className="text-lg font-medium text-white mb-4">Categories</h2>
+  <div className="space-y-2">
+    {categories?.map((category) => (
+      <div key={category._id} className="flex items-center">
+        <input
+          type="checkbox"
+          id={`category-${category._id}`}
+          checked={checked.includes(category._id)}
+          onChange={(e) => handleCategoryClick(category._id)}
+          className="w-4 h-4 rounded border-gray-800 
+            text-cyan-500 focus:ring-cyan-500/20"
+        />
+        <label
+          htmlFor={`category-${category._id}`}
+          className="ml-3 text-gray-400 
+            hover:text-cyan-400 cursor-pointer 
+            transition-colors"
+        >
+          {category.name}
+        </label>
+      </div>
+    ))}
+  </div>
+</div>
 
-                {/* Brands */}
-                <div>
-                  <h2 className="text-xl font-extrabold text-zinc-950 mb-4">Brands</h2>
-                  <div className="space-y-2">
-                    {uniqueBrands?.map((brand) => (
-                      <div 
-                        key={brand}
-                        className="group flex items-center p-2 rounded-lg hover:bg-violet-300/50 
-                          transition-all duration-300 cursor-pointer"
-                      >
-                        <input
-                          type="radio"
-                          id={`brand-${brand}`}
-                          name="brand"
-                          checked={radio.includes(brand)}
-                          onChange={() => handleBrandClick(brand)}
-                          className="w-4 h-4 accent-pink-400 cursor-pointer"
-                        />
-                        <label
-                          htmlFor={`brand-${brand}`}
-                          className="ml-3 text-zinc-950 font-bold cursor-pointer"
-                        >
-                          {brand}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                
 
-                {/* Price Filter */}
-                <div>
-                  <h2 className="text-xl font-extrabold text-zinc-950 mb-4">Max Price</h2>
-                  <div className="relative">
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-950/50" />
-                    <input
-                      type="number"
-                      placeholder="Enter maximum price..."
-                      value={priceFilter}
-                      onChange={(e) => setPriceFilter(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 bg-violet-300/50 border-2 border-pink-400 
-                        rounded-lg text-zinc-950 font-bold placeholder-zinc-900/50 outline-none 
-                        focus:border-yellow-300 transition-all duration-300"
-                    />
-                  </div>
-                </div>
+                
 
                 {/* Reset Button */}
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleReset}
-                  className="w-full py-3 px-4 bg-gradient-to-r from-purple-900 to-indigo-900 
-                    text-white font-bold rounded-xl shadow-lg border-2 border-pink-400 
-                    hover:border-yellow-300 hover:shadow-pink-300/30 hover:scale-105 
-                    transition-all duration-300"
+                  className="w-full px-4 py-2 
+                    bg-gradient-to-r from-gray-700 to-gray-900 
+                    text-white rounded-xl 
+                    hover:from-gray-800 hover:to-black
+                    transition-all"
                 >
                   Reset Filters
-                </button>
+                </motion.button>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Products Grid */}
-          <div className="flex-1">
+          <motion.div 
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="flex-1"
+          >
             <div className="mb-6">
-              <h2 className="text-2xl font-extrabold text-violet-200/90 hidden lg:block">
-                {filteredProducts?.length} Products Available
-              </h2>
+              <p className="text-gray-200 text-3xl">
+                Showing {filteredProducts.length} products
+              </p>
             </div>
-            
-            <div 
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6
-                transform transition-all duration-700"
-            >
-              {filteredProducts.length === 0 ? (
-                <div className="col-span-full flex justify-center py-20">
-                  <Loader />
-                </div>
-              ) : (
-                filteredProducts?.map((p, index) => (
-                  <div
-                    key={p._id}
-                    className="transform transition-all duration-500 hover:scale-105"
-                    style={{
-                      animationDelay: `${index * 100}ms`,
-                      opacity: 0,
-                      animation: `fadeSlideUp 0.5s ease forwards ${index * 0.1}s`
+
+            {filteredProductsQuery.isLoading ? (
+              <div className="flex justify-center py-20">
+                <Loader />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredProducts?.map((product, index) => (
+                  <motion.div
+                    key={product._id}
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ 
+                      duration: 0.6, 
+                      delay: index * 0.1 
                     }}
+                    className="transition-transform duration-300 hover:scale-[1.02]"
                   >
-                    <ProductCard p={p} />
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+                    <ProductCard p={product} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </motion.div>
         </div>
       </div>
 
-      {/* Mobile Overlay */}
-      {isFilterOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsFilterOpen(false)}
-        />
-      )}
+      
 
-      <style jsx>{`
-        @keyframes fadeSlideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+      {/* Scrollbar Styles */}
+      <style jsx global>{`
+        ::-webkit-scrollbar {
+          width: 8px;
         }
-        
-        @keyframes bounce-slow {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
+
+        ::-webkit-scrollbar-track {
+          background: rgba(75, 85, 99, 0.1);
         }
-        
-        .animate-bounce-slow {
-          animation: bounce-slow 2s infinite ease-in-out;
+
+        ::-webkit-scrollbar-thumb {
+          background: rgba(75, 85, 99, 0.5);
+          border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(75, 85, 99, 0.8);
         }
       `}</style>
     </div>

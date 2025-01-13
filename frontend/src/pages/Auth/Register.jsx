@@ -5,7 +5,7 @@ import { setCredientials } from "../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
 import { useRegisterMutation } from "../../redux/api/usersApiSlice";
 import { Loader2 } from "lucide-react";
-import back2 from '../../assets/back2.mp4';
+import back2 from "../../assets/blue.jpg";
 
 const Register = () => {
   const [username, setUsername] = useState("");
@@ -49,18 +49,17 @@ const Register = () => {
 
   return (
     <div className="relative min-h-screen font-mono flex justify-center items-center">
-      {/* Video Background */}
-      <video
-        autoPlay
-        loop
-        muted
-        className="absolute top-0 left-0 w-full h-full object-cover"
-      >
-        <source src={back2} type="video/mp4" />
-      </video>
+      {/* Background Image with Blur */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(${back2})`,
+          filter: 'blur(4px)',
+          transform: 'scale(1.1)',
+        }}
+      />
 
-      {/* Overlay */}
-      <div className="absolute top-0 left-0 w-full h-full bg-black/40 backdrop-blur-sm" />
+      
 
       {/* Registration Form */}
       <div 

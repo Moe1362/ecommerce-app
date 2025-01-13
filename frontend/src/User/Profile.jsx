@@ -4,6 +4,13 @@ import { toast } from "react-toastify";
 import { setCredientials } from "../../src/redux/features/auth/authSlice";
 import Loader from "../components/Loader";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { 
+  FaUser, 
+  FaEnvelope, 
+  FaLock, 
+  FaShoppingBag 
+} from "react-icons/fa";
 import { useProfileMutation } from "../../src/redux/api/usersApiSlice";
 
 const Profile = () => {
@@ -36,7 +43,7 @@ const Profile = () => {
           email,
           password,
         }).unwrap();
-        dispatch(setCredientials(res)); // Corrected this line
+        dispatch(setCredientials(res));
         toast.success("Profile Updated Successfully");
       } catch (error) {
         toast.error(error?.data?.message || error.message);
@@ -45,75 +52,165 @@ const Profile = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 mt-[10rem]">
-      {/* Page load animation: Fade-in and slide-up */}
-      <div className="flex justify-center align-center md:flex md:space-4 animate-fade-up">
-        <div className="md:w-1/3 bg-white p-8 rounded-lg shadow-xl shadow-pink-500/50 transition-all ease-in-out duration-500">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-            Update Profile
-          </h2>
+    <div className="min-h-screen  flex items-center justify-center px-4 py-12">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ 
+          duration: 0.5,
+          type: "spring",
+          stiffness: 300
+        }}
+        className="w-full max-w-md bg-gray-800 rounded-2xl shadow-2xl shadow-indigo-500/20 border border-gray-700 overflow-hidden"
+      >
+        <div className="p-8">
+          <div className="text-center mb-8">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ 
+                delay: 0.3,
+                type: "spring",
+                stiffness: 300
+              }}
+              className="mx-auto w-24 h-24 bg-gradient-to-r from-indigo-500 to-purple-600 
+                rounded-full flex items-center justify-center mb-4 shadow-lg"
+            >
+              <FaUser className="text-4xl text-white" />
+            </motion.div>
+            <h2 className="text-3xl font-bold text-white">
+              Update Profile
+            </h2>
+            <p className="text-gray-400 mt-2">
+              Manage your account settings
+            </p>
+          </div>
 
-          {/* Form Animation: Add a slight transition to inputs */}
-          <form onSubmit={submitHandler} className="space-y-4">
-            <div className="mb-4">
-              <label className="block text-black mb-2">Username</label>
+          <form onSubmit={submitHandler} className="space-y-6">
+            {/* Username Input */}
+            <motion.div 
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="relative"
+            >
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <FaUser />
+              </div>
               <input
                 type="text"
-                placeholder="Enter Username"
-                className="form-input p-4 rounded-sm w-full border transition duration-300 ease-in-out transform hover:scale-105 focus:ring-2 focus:ring-pink-500 shadow-md focus:shadow-lg focus:shadow-pink-500/50"
+                placeholder="Username"
+                className="w-full pl-12 pr-4 py-3 bg-gray-700 text-white 
+                  rounded-xl border border-gray-600 focus:border-indigo-500 
+                  focus:ring-2 focus:ring-indigo-500/50 transition-all duration-300"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                required
               />
-            </div>
-            <div className="mb-4">
-              <label className="block text-black mb-2">Email Address</label>
+            </motion.div>
+
+            {/* Email Input */}
+            <motion.div 
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="relative"
+            >
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <FaEnvelope />
+              </div>
               <input
                 type="email"
-                placeholder="Enter Email"
-                className="form-input p-4 rounded-sm w-full border transition duration-300 ease-in-out transform hover:scale-105 focus:ring-2 focus:ring-pink-500 shadow-md focus:shadow-lg focus:shadow-pink-500/50"
+                placeholder="Email Address"
+                className="w-full pl-12 pr-4 py-3 bg-gray-700 text-white 
+                  rounded-xl border border-gray-600 focus:border-indigo-500 
+                  focus:ring-2 focus:ring-indigo-500/50 transition-all duration-300"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
-            </div>
-            <div className="mb-4">
-              <label className="block text-black mb-2">Password</label>
+            </motion.div>
+
+            {/* Password Input */}
+            <motion.div 
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="relative"
+            >
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <FaLock />
+              </div>
               <input
                 type="password"
-                placeholder="Enter Password"
-                className="form-input p-4 rounded-sm w-full border transition duration-300 ease-in-out transform hover:scale-105 focus:ring-2 focus:ring-pink-500 shadow-md focus:shadow-lg focus:shadow-pink-500/50"
+                placeholder="New Password"
+                className="w-full pl-12 pr-4 py-3 bg-gray-700 text-white 
+                  rounded-xl border border-gray-600 focus:border-indigo-500 
+                  focus:ring-2 focus:ring-indigo-500/50 transition-all duration-300"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-            </div>
-            <div className="mb-4">
-              <label className="block text-black mb-2">Confirm Password</label>
+            </motion.div>
+
+            {/* Confirm Password Input */}
+            <motion.div 
+              initial={{ x: -50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="relative"
+            >
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <FaLock />
+              </div>
               <input
                 type="password"
                 placeholder="Confirm Password"
-                className="form-input p-4 rounded-sm w-full border transition duration-300 ease-in-out transform hover:scale-105 focus:ring-2 focus:ring-pink-500 shadow-md focus:shadow-lg focus:shadow-pink-500/50"
+                className="w-full pl-12 pr-4 py-3 bg-gray-700 text-white 
+                  rounded-xl border border-gray-600 focus:border-indigo-500 
+                  focus:ring-2 focus:ring-indigo-500/50 transition-all duration-300"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
-            </div>
-            <div className="flex justify-between mt-6">
-              {/* Hover effect on button */}
+            </motion.div>
+
+            {/* Action Buttons */}
+            <motion.div 
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="flex flex-col sm:flex-row gap-4"
+            >
               <button
                 type="submit"
-                className="bg-pink-500 text-black py-2 px-4 rounded hover:bg-pink-600 transition duration-300 ease-in-out transform hover:scale-110 shadow-md hover:shadow-lg hover:shadow-pink-500/50"
+                disabled={loadingUpdateProfile}
+                className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white 
+                  py-3 rounded-xl hover:from-indigo-600 hover:to-purple-700 
+                  transition-all duration-300 flex items-center justify-center gap-2
+                  disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Update
+                {loadingUpdateProfile ? (
+                  <span>Updating...</span>
+                ) : (
+                  <>Update Profile</>
+                )}
               </button>
+
               <Link
                 to="/user-orders"
-                className="bg-pink-600 text-black py-2 px-4 rounded hover:bg-pink-700 transition duration-300 ease-in-out transform hover:scale-110 shadow-md hover:shadow-lg hover:shadow-pink-500/50"
+                className="w-full bg-gray-700 text-white py-3 rounded-xl 
+                  hover:bg-gray-600 transition-all duration-300 
+                  flex items-center justify-center gap-2"
               >
+                <FaShoppingBag />
                 My Orders
               </Link>
-            </div>
+            </motion.div>
           </form>
         </div>
-        {loadingUpdateProfile && <Loader />}
-      </div>
+      </motion.div>
+
+      {/* Optional: Background Gradient */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-gray-900 via-gray-900 to-indigo-900 opacity-75"></div>
     </div>
   );
 };

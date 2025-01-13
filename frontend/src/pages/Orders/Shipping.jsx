@@ -7,6 +7,42 @@ import {
 } from "../../redux/features/cart/cartSlice";
 import ProgressSteps from "../../components/ProgressSteps";
 
+const InputField = ({ label, type, value, onChange, placeholder }) => (
+  <div className="relative group">
+    <label className="block text-zinc-400 font-medium text-sm mb-2">
+      {label}
+    </label>
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      required
+      className="w-full px-4 py-3 rounded-xl bg-zinc-900/50 border border-zinc-800 
+        text-white placeholder-zinc-500
+        focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 
+        hover:border-emerald-500/30 transition-all duration-300"
+    />
+  </div>
+);
+
+const PaymentMethodRadio = ({ value, checked, onChange, label }) => (
+  <label className="flex items-center space-x-3 p-4 rounded-xl 
+    hover:bg-white/5 transition-all duration-300 cursor-pointer 
+    border border-transparent hover:border-emerald-500/30">
+    <input
+      type="radio"
+      className="form-radio h-5 w-5 text-emerald-500 border-zinc-700 
+        focus:ring-emerald-500 focus:ring-offset-zinc-900"
+      name="paymentMethod"
+      value={value}
+      checked={checked}
+      onChange={onChange}
+    />
+    <span className="text-white">{label}</span>
+  </label>
+);
+
 const Shipping = () => {
   const cart = useSelector((state) => state.cart);
   const { shippingAddress } = cart;
@@ -33,36 +69,24 @@ const Shipping = () => {
     }
   }, [shippingAddress, navigate]);
 
-  const InputField = ({ label, type, value, onChange, placeholder }) => (
-    <div className="relative group">
-      <label className="block text-zinc-950 font-extrabold text-sm mb-2">
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        required
-        className="w-full px-4 py-3 rounded-lg bg-violet-200/90 border-2 border-pink-400 
-          text-zinc-950 font-extrabold placeholder-zinc-900/50
-          focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 
-          hover:border-yellow-300 transition-all duration-300"
-      />
-    </div>
-  );
-
   return (
-    <div className="min-h-screen 
-      font-mono py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-zinc-950 py-20 px-4 sm:px-6 lg:px-8">
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm" />
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-10 max-w-2xl mx-auto">
         <div className="mb-8">
           <ProgressSteps step1 step2 />
         </div>
 
-        <div className="bg-violet-200/90 backdrop-blur-md rounded-2xl border-2 border-pink-400 
-          shadow-xl p-8 hover:border-yellow-300 hover:shadow-pink-300/30 transition-all duration-500">
-          <h1 className="text-3xl font-extrabold text-zinc-950 mb-8 text-center">
+        <div className="bg-zinc-900/50 backdrop-blur-md rounded-2xl border border-zinc-800 
+          shadow-xl p-8 hover:border-emerald-500/30 transition-all duration-300">
+          <h1 className="text-3xl font-medium text-white mb-8 text-center">
             Shipping Details
           </h1>
 
@@ -102,43 +126,31 @@ const Shipping = () => {
             </div>
 
             {/* Payment Method Section */}
-            <div className="mt-8 p-6 bg-violet-200/90 rounded-lg border-2 border-pink-400 
-              hover:border-yellow-300 transition-all duration-300">
-              <label className="block text-zinc-950 font-extrabold text-sm mb-4">
+            <div className="mt-8 p-6 bg-zinc-900/50 rounded-xl border border-zinc-800 
+              hover:border-emerald-500/30 transition-all duration-300">
+              <label className="block text-zinc-400 font-medium text-sm mb-4">
                 Payment Method
               </label>
               <div className="space-y-3">
-                <label className="flex items-center space-x-3 p-3 rounded-lg 
-                  hover:bg-violet-300/50 transition-all duration-300 cursor-pointer 
-                  border-2 border-transparent hover:border-pink-400">
-                  <input
-                    type="radio"
-                    className="form-radio h-5 w-5 text-purple-900 border-pink-400 
-                      focus:ring-purple-900 focus:ring-offset-violet-200"
-                    name="paymentMethod"
-                    value="PayPal"
-                    checked={paymentMethod === "PayPal"}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                  />
-                  <span className="text-zinc-950 font-extrabold">PayPal or Credit Card</span>
-                </label>
+                <PaymentMethodRadio
+                  value="PayPal"
+                  checked={paymentMethod === "PayPal"}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  label="PayPal or Credit Card"
+                />
               </div>
             </div>
 
             {/* Submit Button */}
             <button
-              className="w-full py-4 px-6 mt-8 bg-gradient-to-r from-purple-900 to-indigo-900 
-                text-white font-bold rounded-xl shadow-lg 
-                border-2 border-pink-400 hover:border-yellow-300 
-                focus:outline-none focus:ring-2 focus:ring-pink-500/50 
-                hover:shadow-pink-300/30 hover:scale-105 
-                transition-all duration-300
-                relative group overflow-hidden"
+              className="w-full py-4 px-6 mt-8 bg-gradient-to-r from-emerald-500 to-sky-500 
+                text-white font-medium rounded-xl shadow-lg transition-all duration-300
+                hover:shadow-emerald-500/20 hover:scale-[1.02] relative group overflow-hidden"
               type="submit"
             >
               <span className="relative z-10">Continue to Order Summary</span>
-              <div className="absolute inset-0 -z-10 bg-pink-500/20 blur-xl 
-                opacity-0 group-hover:opacity-100 transition-all duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-sky-600 
+                opacity-0 group-hover:opacity-100 transition-all duration-300" />
             </button>
           </form>
         </div>

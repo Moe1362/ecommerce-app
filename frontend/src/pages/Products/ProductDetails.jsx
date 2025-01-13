@@ -2,17 +2,26 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useGetProductDetailsQuery,
   useGetProductsByCategoryQuery,
 } from "../../redux/api/productApiSlice";
-import { Store, Clock, Package2, ShoppingCart, ArrowLeft, Star } from "lucide-react";
+import { 
+  Store, 
+  Clock, 
+  Package2, 
+  ShoppingCart, 
+  ArrowLeft, 
+  Star, 
+  ChevronLeft, 
+  ChevronRight 
+} from "lucide-react";
 import moment from "moment";
 import HeartIcon from "./HeartIcon";
 import ProductLoader from "../../components/ProductLoader";
-import RelatedProducts from "../../components/RelatedProducts";
+import SmallProduct from "./SmallProduct";
 import { addToCart } from "../../redux/features/cart/cartSlice";
-import back7 from "../../assets/back7.mp4";
 
 const SIZES = ["XS", "S", "M", "L", "XL"];
 const COLORS = ["Black", "White", "Red", "Blue", "Green"];
@@ -21,12 +30,11 @@ const ProductDetails = () => {
   const { id: productId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [isMount, setIsMount] = useState(false);
 
   const [qty, setQty] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [currentImage, setCurrentImage] = useState(0);
 
   const {
     data: product,
@@ -41,10 +49,11 @@ const ProductDetails = () => {
     });
 
   useEffect(() => {
-    setIsMount(true);
     if (product) {
-      setSelectedSize(product.size || SIZES[0]);
-      setSelectedColor(product.color || COLORS[0]);
+      if (product.category?.name?.toLowerCase() === 't-shirt') {
+        setSelectedSize(product.size || SIZES[0]);
+        setSelectedColor(product.color || COLORS[0]);
+      }
     }
   }, [product]);
 
@@ -53,35 +62,134 @@ const ProductDetails = () => {
   }, [productId, refetch]);
 
   const addToCartHandler = () => {
-    dispatch(addToCart({ 
-      ...product, 
-      qty: Number(qty), 
-      size: selectedSize, 
-      color: selectedColor 
-    }));
+    const cartItem = {
+      ...product,
+      qty: Number(qty),
+    };
+
+    if (product.category?.name?.toLowerCase() === 't-shirt') {
+      cartItem.size = selectedSize;
+      cartItem.color = selectedColor;
+    }
+
+    dispatch(addToCart(cartItem));
     toast.success("Added to cart successfully!");
     navigate("/cart");
   };
 
-  return (
-    <div className="relative min-h-screen font-mono">
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className="fixed top-0 left-0 w-full h-full object-cover"
-      >
-        <source src={back7} type="video/mp4" />
-      </video>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
+  const isClothing = product?.category?.name?.toLowerCase() === 't-shirt';
 
-      <div className="relative z-10 container mx-auto px-4 py-8">
+  // Image gallery navigation
+  const nextImage = () => {
+    const images = product.images || [product.image];
+    setCurrentImage((prev) => (prev + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    const images = product.images || [product.image];
+    setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  // Image gallery component
+  const renderProductImages = () => {
+    const images = product.images || [product.image];
+    
+    return (
+      <div className="relative group">
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={currentImage}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className="relative rounded-xl overflow-hidden border border-zinc-800 
+              bg-white/5 aspect-square"
+          >
+            <img 
+              src={images[currentImage]} 
+              alt={`${product.name} - Image ${currentImage + 1}`}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute top-4 right-4">
+              <HeartIcon product={product} />
+            </div>
+
+            {/* Image Navigation Buttons */}
+            {images.length > 1 && (
+              <>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 
+                    bg-black/40 text-white p-2 rounded-full opacity-0 
+                    group-hover:opacity-100 transition-opacity duration-300"
+                >
+                  <ChevronLeft />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 
+                    bg-black/40 text-white p-2 rounded-full opacity-0 
+                    group-hover:opacity-100 transition-opacity duration-300"
+                >
+                  <ChevronRight />
+                </motion.button>
+              </>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Image Thumbnails */}
+        {images.length > 1 && (
+          <div className="flex space-x-2 mt-4 justify-center">
+            {images.map((img, index) => (
+              <motion.button
+                key={index}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setCurrentImage(index)}
+                className={`w-16 h-16 rounded-lg overflow-hidden border-2 transform transition-all
+                  ${currentImage === index 
+                    ? 'border-emerald-500' 
+                    : 'border-transparent hover:border-zinc-700'}`}
+              >
+                <img 
+                  src={img} 
+                  alt={`Thumbnail ${index + 1}`} 
+                  className="w-full h-full object-cover"
+                />
+              </motion.button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-zinc-950"
+    >
+      {/* Background Effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-zinc-950/80 backdrop-blur-sm" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Link 
           to="/shop"
-          className="inline-flex items-center text-white/70 hover:text-white mb-8 
-            group border border-white/10 px-4 py-2 rounded-lg bg-white/5 
-            backdrop-blur-sm transition-all duration-300 hover:bg-white/10"
+          className="inline-flex items-center text-zinc-400 hover:text-emerald-400 mb-8 
+            group border border-zinc-800 px-4 py-2 rounded-xl bg-white/5 
+            hover:border-emerald-500/30 transition-all duration-300"
         >
           <ArrowLeft className="mr-2 transform group-hover:-translate-x-1 transition-transform" />
           Back to Shop
@@ -90,186 +198,160 @@ const ProductDetails = () => {
         {isLoading ? (
           <ProductLoader />
         ) : error ? (
-          <div className="text-red-400 bg-red-400/10 p-4 rounded-lg backdrop-blur-sm">
+          <div className="text-red-400 bg-red-500/10 p-4 rounded-xl border border-red-500/20">
             {error?.data?.message || error.message}
           </div>
         ) : (
-          <div className={`transition-all duration-700 ${isMount ? "opacity-100" : "opacity-0"}`}>
-            {/* Product Details Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Product Image */}
-              <div className="relative group">
-                <div className="relative overflow-hidden rounded-2xl border border-white/10 
-                  backdrop-blur-sm bg-white/5">
-                  <div className={`aspect-square transition-opacity duration-300 
-                    ${imageLoaded ? 'opacity-0' : 'opacity-100'}`}>
-                    <ProductLoader />
-                  </div>
-                  <img 
-                    src={product.image} 
-                    alt={product.name}
-                    onLoad={() => setImageLoaded(true)}
-                    className={`absolute top-0 left-0 w-full h-full object-cover 
-                      transition-all duration-700 group-hover:scale-110 
-                      ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                  />
-                  <div className="absolute top-4 right-4 z-10">
-                    <HeartIcon product={product} />
-                  </div>
-                </div>
+              <div className="relative">
+                {renderProductImages()}
               </div>
 
               {/* Product Info */}
-              <div className="space-y-8 backdrop-blur-sm bg-white/5 p-6 rounded-2xl 
-                border border-white/10">
-                <div>
-                  <h1 className="text-4xl font-bold text-white mb-4">{product.name}</h1>
-                  <p className="text-white/70 leading-relaxed">{product.description}</p>
-                </div>
-
-                <div className="text-4xl font-bold text-white">${product.price}</div>
-
-                {/* Size Selection */}
-                <div>
-                  <h3 className="text-white font-semibold mb-3">Size:</h3>
-                  <div className="flex flex-wrap gap-3">
-                    {SIZES.map((size) => (
-                      <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`px-4 py-2 rounded-lg border transition-all duration-300
-                          ${selectedSize === size 
-                            ? 'border-white text-white bg-white/20' 
-                            : 'border-white/20 text-white/60 hover:border-white/40'}`}
-                      >
-                        {size}
-                      </button>
-                    ))}
+              <div className="bg-zinc-900/50 backdrop-blur-md rounded-xl border border-zinc-800 p-6">
+                <div className="space-y-6">
+                  <div>
+                    <h1 className="text-3xl font-bold text-white mb-3">{product.name}</h1>
+                    <p className="text-zinc-400 leading-relaxed">{product.description}</p>
                   </div>
-                </div>
 
-                {/* Color Selection */}
-                <div>
-                  <h3 className="text-white font-semibold mb-3">Color:</h3>
-                  <div className="flex flex-wrap gap-3">
-                    {COLORS.map((color) => (
-                      <button
-                        key={color}
-                        onClick={() => setSelectedColor(color)}
-                        className={`px-4 py-2 rounded-lg border transition-all duration-300
-                          ${selectedColor === color 
-                            ? 'border-white text-white bg-white/20' 
-                            : 'border-white/20 text-white/60 hover:border-white/40'}`}
-                      >
-                        {color}
-                      </button>
-                    ))}
+                  <div className="text-3xl font-bold text-emerald-400">${product.price}</div>
+
+                  {/* Conditional Size Selection */}
+                  {isClothing && (
+                    <div>
+                      <h3 className="text-white font-medium mb-3">Size:</h3>
+                      <div className="flex flex-wrap gap-3">
+                        {SIZES.map((size) => (
+                          <motion.button
+                            key={size}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setSelectedSize(size)}
+                            className={`px-4 py-2 rounded-lg border transition-all duration-300
+                              ${selectedSize === size 
+                                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10' 
+                                : 'border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+                          >
+                            {size}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Conditional Color Selection */}
+                  {isClothing && (
+                    <div>
+                      <h3 className="text-white font-medium mb-3">Color:</h3>
+                      <div className="flex flex-wrap gap-3">
+                        {COLORS.map((color) => (
+                          <motion.button
+                            key={color}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setSelectedColor(color)}
+                            className={`px-4 py-2 rounded-lg border transition-all duration-300
+                              ${selectedColor === color 
+                                ? 'border-emerald-500 text-emerald-400 bg-emerald-500/10' 
+                                : 'border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+                          >
+                            {color}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Product Stats */}
+                  <div className="grid grid-cols-2 gap-6 py-6 border-y border-zinc-800">
+                    <div className="space-y-4">
+                      <div className="flex items-center text-zinc-400">
+                        <Store className="mr-3 text-emerald-400" />
+                        <span>Brand: {product.brand}</span>
+                      </div>
+                      <div className="flex items-center text-zinc-400">
+                        <Clock className="mr-3 text-emerald-400" />
+                        <span>Added: {moment(product.createdAt).fromNow()}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center text-zinc-400">
+                        <Package2 className="mr-3 text-emerald-400" />
+                        <span>In Stock: {product.countInStock}</span>
+                      </div>
+                      <div className="flex items-center text-zinc-400">
+                        <Star className="mr-3 text-emerald-400" />
+                        <span>Rating: {product.rating}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                {/* Product Stats */}
-                <div className="grid grid-cols-2 gap-6 py-6 border-y border-white/10">
-                  <div className="space-y-4">
-                    <div className="flex items-center text-white/70">
-                      <Store className="mr-3 text-white" />
-                      <span>Brand: {product.brand}</span>
-                    </div>
-                    <div className="flex items-center text-white/70">
-                      <Clock className="mr-3 text-white" />
-                      <span>Added: {moment(product.createdAt).fromNow()}</span>
-                    </div>
+                  {/* Add to Cart Section */}
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <select
+                      value={qty}
+                      onChange={(e) => setQty(e.target.value)}
+                      className="w-full sm:w-32 px-4 py-3 rounded-xl bg-white/5 border border-zinc-800
+                        text-white focus:border-emerald-500/30 transition-all duration-300"
+                    >
+                      {[...Array(product.countInStock).keys()].map((x) => (
+                        <option key={x + 1} value={x + 1}>{x + 1}</option>
+                      ))}
+                    </select>
+
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={addToCartHandler}
+                      disabled={product.countInStock === 0}
+                      className="w-full sm:flex-1 px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-sky-500 
+                        text-white hover:from-emerald-600 hover:to-sky-600 transition-all duration-300
+                        disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02]
+                        flex items-center justify-center gap-2"
+                    >
+                      <ShoppingCart className="w-5 h-5" />
+                      {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                    </motion.button>
                   </div>
-                  <div className="space-y-4">
-                    <div className="flex items-center text-white/70">
-                      <Package2 className="mr-3 text-white" />
-                      <span>In Stock: {product.countInStock}</span>
-                    </div>
-                    <div className="flex items-center text-white/70">
-                      <Star className="mr-3 text-white fill-white" />
-                      <span>Rating: {product.rating}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Add to Cart Section */}
-                <div className="flex flex-col sm:flex-row items-center gap-4">
-                  <select
-                    value={qty}
-                    onChange={(e) => setQty(e.target.value)}
-                    className="w-full sm:w-32 px-4 py-3 rounded-lg bg-white/5 border border-white/20
-                      text-white focus:border-white/40 transition-all duration-300"
-                  >
-                    {[...Array(product.countInStock).keys()].map((x) => (
-                      <option key={x + 1} value={x + 1}>{x + 1}</option>
-                    ))}
-                  </select>
-
-                  <button
-                    onClick={addToCartHandler}
-                    disabled={product.countInStock === 0}
-                    className="w-full sm:flex-1 px-8 py-3 rounded-lg bg-white/10 text-white
-                      hover:bg-white/20 transition-all duration-300 border border-white/20
-                      disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02]
-                      flex items-center justify-center gap-2"
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                    {product.countInStock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                  </button>
                 </div>
               </div>
             </div>
 
             {/* Related Products Section */}
-            <div className="mt-16">
-              {relatedProductsLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {[...Array(4)].map((_, index) => (
-                    <div key={index} className="animate-pulse">
-                      <div className="bg-white/5 rounded-xl aspect-square mb-4" />
-                      <div className="bg-white/5 h-4 rounded mb-2 w-3/4" />
-                      <div className="bg-white/5 h-4 rounded w-1/4" />
-                    </div>
-                  ))}
+            {!relatedProductsLoading && relatedProducts?.length > 1 && (
+              <div className="mt-16 pt-8 border-t border-zinc-800">
+                <div className="flex justify-between items-center mb-8">
+                  <div>
+                    <h2 className="text-2xl font-bold text-white mb-2">Related Products</h2>
+                    <p className="text-zinc-400">You might also like these</p>
+                  </div>
                 </div>
-              ) : relatedProducts?.length > 1 ? (
-                <RelatedProducts 
-                  products={relatedProducts.filter(p => p._id !== productId)}
-                  currentProductId={productId}
-                />
-              ) : null}
-            </div>
-          </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {relatedProducts
+                    .filter(p => p._id !== productId)
+                    .slice(0, 4)
+                    .map((relatedProduct) => (
+                      <motion.div 
+                        key={relatedProduct._id} 
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="relative bg-zinc-900/50 backdrop-blur-md rounded-xl 
+                          hover:scale-[1.02] transition-all duration-300"
+                      >
+                        <SmallProduct product={relatedProduct} />
+                      </motion.div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes fadeSlideUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out forwards;
-        }
-      `}</style>
-    </div>
+    </motion.div>
   );
 };
 

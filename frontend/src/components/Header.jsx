@@ -19,7 +19,7 @@ const Header = () => {
 
   if (error)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+      <div className="min-h-screen flex items-center justify-center ">
         <h2 className="text-red-400 text-xl font-mono animate-pulse">
           {error}
         </h2>
@@ -31,8 +31,8 @@ const Header = () => {
       {/* Background Effects */}
       <div className="fixed inset-0 pointer-events-none">
         {/* Animated gradient orbs */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/20 rounded-full filter blur-[100px] animate-float-slow" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-pink-500/20 rounded-full filter blur-[100px] animate-float-slow-delay" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px]  rounded-full filter blur-[100px] animate-float-slow" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px]  rounded-full filter blur-[100px] animate-float-slow-delay" />
       </div>
 
       {/* Content Container */}
@@ -47,7 +47,7 @@ const Header = () => {
           <div className="relative mt-8" ref={featuredProductsRef}>
             {/* Section Title */}
             <div className="flex justify-between items-center py-6">
-              <h2 className="text-2xl sm:text-3xl font-bold text-white font-mono tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-white font-sans tracking-tight">
                 Featured Products
               </h2>
             </div>
@@ -63,7 +63,7 @@ const Header = () => {
                   }}
                 >
                   {/* Card Glow Effect */}
-                  <div className="absolute inset-0 bg-purple-500/10 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gray-900 rounded-xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                   {/* Product Card */}
                   <div className="relative rounded-xl overflow-hidden backdrop-blur-sm">

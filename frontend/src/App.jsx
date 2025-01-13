@@ -8,7 +8,7 @@ import { useEffect } from "react";
 
 function App() {
   const location = useLocation();
-
+  
   // Smooth scroll for internal links
   useEffect(() => {
     const handleClick = (e) => {
@@ -25,17 +25,19 @@ function App() {
         }
       }
     };
-
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
   return (
-    <div className="relative">
-      <ToastContainer />
+    <div className="relative bg-black min-h-screen">
+      <ToastContainer 
+        theme="dark"
+        toastClassName="bg-gray-900 text-gray-300 border border-gray-800"
+      />
       
       <Navigation />
-
+      
       {/* Main Content with Page Transitions */}
       <motion.main 
         key={location.pathname}
@@ -43,26 +45,38 @@ function App() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="py-20 mt-[3rem]"
+        className="py-20 mt-[3rem] relative z-10"
       >
         <Outlet />
       </motion.main>
-
+      
       {/* Reveal Footer on Scroll */}
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 0.7 }}
+        className="relative z-20"
       >
         <Footer />
       </motion.div>
-
-      {/* Corner Gradient Effect */}
-      <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full 
-        filter blur-[100px] pointer-events-none opacity-50" />
-      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-pink-500/10 rounded-full 
-        filter blur-[100px] pointer-events-none opacity-50" />
+      
+      {/* Subtle Background Effects */}
+      <div className="fixed top-0 right-0 w-[400px] h-[400px] 
+        bg-gradient-to-br from-gray-800/20 to-gray-900/20 
+        rounded-full filter blur-[100px] 
+        pointer-events-none opacity-30" />
+      
+      <div className="fixed bottom-0 left-0 w-[400px] h-[400px] 
+        bg-gradient-to-br from-gray-800/20 to-gray-900/20 
+        rounded-full filter blur-[100px] 
+        pointer-events-none opacity-30" />
+      
+      {/* Subtle Border Overlay */}
+      <div className="fixed inset-0 pointer-events-none z-50 
+        border-4 border-gray-900/50 
+        dark:border-gray-700/30 
+        mix-blend-overlay"></div>
     </div>
   );
 }

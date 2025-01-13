@@ -5,7 +5,7 @@ import { useLoginMutation } from "../../redux/api/usersApiSlice";
 import { setCredientials } from "../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
-
+import back from '../../assets/back1.jpg';  // Change this to your image file
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -42,9 +42,17 @@ const Login = () => {
 
   return (
     <div className="relative min-h-screen font-mono flex justify-center items-center">
-      
+      {/* Background Image with Blur */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(${back})`,
+          filter: 'blur(4px)',
+          transform: 'scale(1.1)',  // Prevents blur edges from showing
+        }}
+      />
 
-      
+     
 
       {/* Login Form */}
       <div 

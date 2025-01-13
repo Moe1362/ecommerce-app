@@ -1,123 +1,140 @@
 import { Link } from "react-router-dom";
-import { AiOutlineShoppingCart } from "react-icons/ai";
+import { motion } from "framer-motion";
+import { AiOutlineShoppingCart, AiOutlinePlus, AiOutlineMinus } from "react-icons/ai";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../../redux/features/cart/cartSlice";
 import { toast } from "react-toastify";
 import HeartIcon from "./HeartIcon";
+import { useState, useEffect } from "react";
 
 const ProductCard = ({ p }) => {
   const dispatch = useDispatch();
+  const [isDarkBackground, setIsDarkBackground] = useState(false);
+  const [quantity, setQuantity] = useState(1);
 
-  const addToCartHandler = (product, qty) => {
-    dispatch(addToCart({ ...product, qty }));
+  const addToCartHandler = () => {
+    dispatch(addToCart({ ...p, qty: quantity }));
     toast.success("Product added to cart");
-  }
+  };
+
+  const incrementQuantity = () => setQuantity(prev => Math.min(prev + 1, 10));
+  const decrementQuantity = () => setQuantity(prev => Math.max(prev - 1, 1));
+
+  useEffect(() => {
+    const checkBackgroundColor = () => {
+      const img = new Image();
+      img.src = p?.image;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 1, 1);
+        const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        setIsDarkBackground(brightness < 128);
+      };
+    };
+
+    checkBackgroundColor();
+  }, [p?.image]);
 
   return (
-    <div className="relative group font-mono">
-      <div className="relative bg-[#1A1A1A] rounded-xl overflow-hidden transform transition-all duration-500 
-        hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/10">
-        {/* Image Section */}
-        <div className="relative overflow-hidden aspect-[4/3]">
-          <Link to={`/product/${p._id}`}>
-            <img
-              className="w-full h-full object-cover transition-transform duration-700 
-                group-hover:scale-110"
-              src={p?.image}
-              alt={p.name}
-            />
-          </Link>
-
-          {/* Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 
-            group-hover:opacity-100 transition-opacity duration-300" />
-
-          {/* Brand Tag */}
-          <span className="absolute bottom-3 right-3 px-3 py-1 bg-black/30 backdrop-blur-sm rounded-full 
-            text-white text-sm font-medium tracking-wide transform transition-all duration-300 
-            translate-y-10 group-hover:translate-y-0">
-            {p?.brand}
-          </span>
-
-          {/* Heart Icon */}
-          <div className="absolute top-3 right-3 z-20" onClick={(e) => e.stopPropagation()}>
-            <HeartIcon product={p} />
-          </div>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ 
+        y: -5,
+        transition: { duration: 0.3 }
+      }}
+      className="relative group overflow-hidden 
+        rounded-2xl 
+        shadow-xl 
+        border border-blue-800
+        transition-all duration-300
+        w-full max-w-xs mx-auto
+        bg-transparent"
+    >
+      {/* Image Container */}
+      <div className="relative">
+        {/* Heart Icon */}
+        <div className="absolute top-4 right-4 z-10">
+          <HeartIcon product={p} isDark={!isDarkBackground} />
         </div>
 
-        {/* Content Section */}
-        <div className="p-5 space-y-4">
-          <div className="flex justify-between items-start gap-2">
-            <h5 className="text-xl text-white font-medium tracking-wide line-clamp-2 
-              group-hover:text-purple-400 transition-colors duration-300">
-              {p?.name}
-            </h5>
-            <p className="text-lg font-bold text-purple-400 whitespace-nowrap">
-              {p?.price?.toLocaleString("en-US", {
-                style: "currency",
-                currency: "USD",
-              })}
-            </p>
-          </div>
+        {/* Product Image */}
+        <Link to={`/product/${p._id}`} className="block">
+          <motion.div
+            whileHover={{ 
+              scale: 1.05,
+              transition: { duration: 0.3 }
+            }}
+            className="aspect-square overflow-hidden"
+          >
+            <img
+              src={p?.image}
+              alt={p.name}
+              className="w-full h-full object-cover 
+                transition-all duration-300"
+            />
+          </motion.div>
+        </Link>
+      </div>
 
-          <p className="text-[#CFCFCF] line-clamp-2 text-sm">
-            {p?.description}
-          </p>
+      {/* Product Details */}
+      <div className="p-4">
+        <Link to={`/product/${p._id}`}>
+          <h3 className="text-lg font-semibold 
+            text-gray-200 
+            truncate
+            hover:text-blue-600
+            transition-colors duration-300
+            mb-2">
+            {p?.name}
+          </h3>
+        </Link>
 
-          {/* Actions Section */}
-          <div className="flex justify-between items-center pt-2">
-            <Link
-              to={`/product/${p._id}`}
-              className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-white 
-                bg-purple-500 rounded-lg overflow-hidden group/btn transition-all duration-300
-                hover:bg-purple-600"
-            >
-              {/* Shine Effect */}
-              <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform 
-                -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-20 
-                group-hover/btn:animate-shine" />
-              
-              <span>Read More</span>
-              <svg
-                className="w-4 h-4 ml-2 transform transition-transform duration-300 
-                  group-hover/btn:translate-x-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                />
-              </svg>
-            </Link>
+        {/* Price */}
+        <div className="flex justify-between items-center mb-4">
+          <span className="text-xl font-bold text-blue-600">
+            ${p?.price?.toFixed(2)}
+          </span>
+        </div>
 
-            <button 
-              onClick={() => addToCartHandler(p, 1)}
-              className="p-3 rounded-full bg-purple-500/10 text-purple-400 
-                hover:bg-purple-500 hover:text-white transform transition-all duration-300
-                hover:scale-110 hover:rotate-12"
-            >
-              <AiOutlineShoppingCart size={20} />
+        {/* Quantity Selector */}
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-gray-200">Quantity:</span>
+          <div className="flex items-center m-2 ">
+            <button onClick={decrementQuantity} className="p-1 mr-1 bg-gray-600 rounded-lg">
+              <AiOutlineMinus />
+            </button>
+            <span className="px-4 py-1 bg-gray-600 rounded-lg">{quantity}</span>
+            <button onClick={incrementQuantity} className="p-1 ml-1 bg-gray-600 rounded-lg">
+              <AiOutlinePlus />
             </button>
           </div>
         </div>
-      </div>
 
-      <style jsx>{`
-        @keyframes shine {
-          100% {
-            left: 125%;
-          }
-        }
-        
-        .animate-shine {
-          animation: shine 0.85s ease-in;
-        }
-      `}</style>
-    </div>
+        {/* Add to Cart Button */}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={addToCartHandler}
+          className="w-full p-2 
+            bg-blue-500 
+            text-white
+            rounded-full
+            hover:bg-blue-600
+            transition-all duration-300
+            shadow-md
+            flex items-center justify-center"
+          aria-label="Add to cart"
+        >
+          <AiOutlineShoppingCart size={20} className="mr-2" />
+          Add to Cart
+        </motion.button>
+      </div>
+    </motion.div>
   );
 };
 

@@ -105,53 +105,53 @@ const Order = () => {
   return isLoading ? (
     <Loader />
   ) : error ? (
-    <div className="mt-8 p-4 bg-violet-200/90 border-2 border-pink-400 rounded-xl text-zinc-950 font-extrabold">
+    <div className="mt-8 p-4 bg-slate-800 border-2 border-cyan-500 rounded-xl text-cyan-50 font-bold">
       {error.data.message}
     </div>
   ) : (
-    <div className="min-h-screen 
-      font-mono py-20 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen  
+      text-cyan-50 font-sans py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Order Details Section */}
-          <div className="lg:w-2/3">
-            <div className="bg-violet-200/90 backdrop-blur-md rounded-2xl border-2 border-pink-400 
-              overflow-hidden shadow-xl hover:border-yellow-300 transition-all duration-500">
+          <div className="lg:col-span-2">
+            <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl border-2 border-cyan-500 
+              overflow-hidden shadow-2xl hover:border-teal-400 transition-all duration-500">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead>
-                    <tr className="border-b-2 border-pink-400">
-                      <th className="px-4 py-4 text-left text-zinc-950 font-extrabold">Image</th>
-                      <th className="px-4 py-4 text-left text-zinc-950 font-extrabold">Product</th>
-                      <th className="px-4 py-4 text-center text-zinc-950 font-extrabold">Quantity</th>
-                      <th className="px-4 py-4 text-right text-zinc-950 font-extrabold">Price</th>
-                      <th className="px-4 py-4 text-right text-zinc-950 font-extrabold">Total</th>
+                  <thead className="bg-slate-700">
+                    <tr>
+                      <th className="px-4 py-4 text-left text-cyan-50 font-bold">Image</th>
+                      <th className="px-4 py-4 text-left text-cyan-50 font-bold">Product</th>
+                      <th className="px-4 py-4 text-center text-cyan-50 font-bold">Quantity</th>
+                      <th className="px-4 py-4 text-right text-cyan-50 font-bold">Price</th>
+                      <th className="px-4 py-4 text-right text-cyan-50 font-bold">Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y-2 divide-pink-400">
+                  <tbody className="divide-y-2 divide-slate-700">
                     {order.orderItems.map((item, index) => (
-                      <tr key={index} className="group hover:bg-violet-300/50 transition-colors">
+                      <tr key={index} className="group hover:bg-slate-700/50 transition-colors">
                         <td className="p-4">
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="w-16 h-16 object-cover rounded-lg ring-2 ring-pink-400 
-                              group-hover:ring-yellow-300 transition-all"
+                            className="w-16 h-16 object-cover rounded-lg ring-2 ring-cyan-500 
+                              group-hover:ring-teal-400 transition-all"
                           />
                         </td>
                         <td className="p-4">
                           <Link 
                             to={`/product/${item.product}`}
-                            className="text-zinc-950 font-extrabold hover:text-zinc-800 transition-colors"
+                            className="text-cyan-200 font-bold hover:text-teal-300 transition-colors"
                           >
                             {item.name}
                           </Link>
                         </td>
-                        <td className="p-4 text-center text-zinc-950 font-extrabold">{item.qty}</td>
-                        <td className="p-4 text-right text-zinc-950 font-extrabold">
+                        <td className="p-4 text-center text-cyan-50 font-bold">{item.qty}</td>
+                        <td className="p-4 text-right text-cyan-50 font-bold">
                           ${item.price ? Number(item.price).toFixed(2) : '0.00'}
                         </td>
-                        <td className="p-4 text-right text-zinc-950 font-extrabold">
+                        <td className="p-4 text-right text-cyan-50 font-bold">
                           ${item.price ? (Number(item.price) * Number(item.qty)).toFixed(2) : '0.00'}
                         </td>
                       </tr>
@@ -163,30 +163,30 @@ const Order = () => {
           </div>
 
           {/* Order Summary Section */}
-          <div className="lg:w-1/3 space-y-8">
+          <div className="space-y-8">
             {/* Shipping Info */}
-            <div className="bg-violet-200/90 backdrop-blur-md rounded-2xl border-2 border-pink-400 
-              p-6 hover:border-yellow-300 transition-all duration-500">
-              <h2 className="text-xl font-extrabold text-zinc-950 mb-4">Shipping Info</h2>
-              <div className="space-y-3 text-zinc-950 font-extrabold">
-                <p><span className="text-zinc-800">Order ID:</span> {order._id}</p>
-                <p><span className="text-zinc-800">Name:</span> {order.user.username}</p>
-                <p><span className="text-zinc-800">Email:</span> {order.user.email}</p>
-                <p><span className="text-zinc-800">Address:</span> {order.shippingAddress.address}</p>
-                <p><span className="text-zinc-800">Payment:</span> {order.paymentMethod}</p>
+            <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl border-2 border-cyan-500 
+              p-6 hover:border-teal-400 transition-all duration-500">
+              <h2 className="text-xl font-bold text-cyan-50 mb-4">Shipping Info</h2>
+              <div className="space-y-3 text-cyan-200">
+                <p><span className="text-cyan-400">Order ID:</span> {order._id}</p>
+                <p><span className="text-cyan-400">Name:</span> {order.user.username}</p>
+                <p><span className="text-cyan-400">Email:</span> {order.user.email}</p>
+                <p><span className="text-cyan-400">Address:</span> {order.shippingAddress.address}</p>
+                <p><span className="text-cyan-400">Payment:</span> {order.paymentMethod}</p>
                 {order.isPaid ? (
-                  <p className="text-emerald-800">Paid on {order.paidAt}</p>
+                  <p className="text-emerald-400">Paid on {order.paidAt}</p>
                 ) : (
-                  <p className="text-red-800">Not Paid</p>
+                  <p className="text-rose-400">Not Paid</p>
                 )}
               </div>
             </div>
 
             {/* Order Summary */}
-            <div className="bg-violet-200/90 backdrop-blur-md rounded-2xl border-2 border-pink-400 
-              p-6 hover:border-yellow-300 transition-all duration-500">
-              <h2 className="text-xl font-extrabold text-zinc-950 mb-4">Order Summary</h2>
-              <div className="space-y-3 text-zinc-950 font-extrabold">
+            <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl border-2 border-cyan-500 
+              p-6 hover:border-teal-400 transition-all duration-500">
+              <h2 className="text-xl font-bold text-cyan-50 mb-4">Order Summary</h2>
+              <div className="space-y-3 text-cyan-200">
                 <div className="flex justify-between">
                   <span>Items:</span>
                   <span>${calculateItemsTotal(order.orderItems).toFixed(2)}</span>
@@ -199,8 +199,8 @@ const Order = () => {
                   <span>Tax:</span>
                   <span>${Number(order.taxPrice).toFixed(2)}</span>
                 </div>
-                <div className="pt-3 border-t-2 border-pink-400">
-                  <div className="flex justify-between text-lg">
+                <div className="pt-3 border-t-2 border-slate-700">
+                  <div className="flex justify-between text-lg font-bold">
                     <span>Total:</span>
                     <span>${Number(order.totalPrice).toFixed(2)}</span>
                   </div>
@@ -210,8 +210,8 @@ const Order = () => {
 
             {/* PayPal Button Section */}
             {!order.isPaid && (
-              <div className="bg-violet-200/90 backdrop-blur-md rounded-2xl border-2 border-pink-400 
-                p-6 hover:border-yellow-300 transition-all duration-500">
+              <div className="bg-slate-800/80 backdrop-blur-md rounded-2xl border-2 border-cyan-500 
+                p-6 hover:border-teal-400 transition-all duration-500">
                 {loadingPay || isPending ? (
                   <Loader />
                 ) : (
@@ -229,10 +229,12 @@ const Order = () => {
             {userInfo && userInfo.isAdmin && order.isPaid && !order.isDelivered && (
               <button
                 onClick={deliverHandler}
-                className="w-full py-4 px-6 bg-gradient-to-r from-purple-900 to-indigo-900 
+                className="w-full py-4 px-6 
+                  bg-gradient-to-r from-teal-600 to-cyan-700 
                   text-white font-bold rounded-xl shadow-lg 
-                  border-2 border-pink-400 hover:border-yellow-300 
-                  hover:shadow-pink-300/30 hover:scale-105 
+                  border-2 border-cyan-500 
+                  hover:from-teal-700 hover:to-cyan-800 
+                  hover:shadow-cyan-500/30 hover:scale-105 
                   transition-all duration-300"
               >
                 Mark As Delivered

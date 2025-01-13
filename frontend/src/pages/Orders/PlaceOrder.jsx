@@ -8,215 +8,223 @@ import Loader from "../../components/Loader";
 import { useCreateOrderMutation } from "../../redux/api/orderApiSlice";
 import { clearCartItems } from "../../redux/features/cart/cartSlice";
 
-const PlaceOrder = () => {
-const navigate = useNavigate();
-const dispatch = useDispatch();
-const cart = useSelector((state) => state.cart);
-const { userInfo } = useSelector((state) => state.auth);
-
-const [createOrder, { isLoading, error }] = useCreateOrderMutation();
-
-const addDecimals = (num) => (Math.round(num * 100) / 100).toFixed(2);
-
-const { itemsPrice, shippingPrice, taxPrice, totalPrice } = useMemo(() => {
-  const itemsPrice = addDecimals(
-    cart.cartItems.reduce((acc, item) => acc + item.price * item.qty, 0)
-  );
-  const shippingPrice = addDecimals(Number(itemsPrice) > 100 ? 0 : 10);
-  const taxPrice = addDecimals(Number((0.15 * itemsPrice).toFixed(2)));
-  const totalPrice = addDecimals(
-    Number(itemsPrice) + Number(shippingPrice) + Number(taxPrice)
-  );
-  return { itemsPrice, shippingPrice, taxPrice, totalPrice };
-}, [cart.cartItems]);
-
-useEffect(() => {
-  if (!userInfo) {
-    navigate('/login');
-  }
-  if (!cart.shippingAddress.address) {
-    navigate("/shipping");
-  } else if (!cart.paymentMethod) {
-    navigate("/payment");
-  }
-}, [cart.shippingAddress.address, cart.paymentMethod, navigate, userInfo]);
-
-const placeOrderHandler = async () => {
-  try {
-    if (!cart.cartItems || cart.cartItems.length === 0) {
-      toast.error('No items in cart');
-      return;
-    }
-
-    const orderItems = cart.cartItems.map(item => ({
-      name: item.name,
-      qty: item.qty,
-      image: item.image,
-      price: Number(item.price),
-      product: item.product || item._id,
-      size: item.size, 
-      color: item.color
-    }));
-
-    const res = await createOrder({
-      orderItems,
-      shippingAddress: cart.shippingAddress,
-      paymentMethod: cart.paymentMethod,
-      itemsPrice: Number(itemsPrice),
-      taxPrice: Number(taxPrice),
-      shippingPrice: Number(shippingPrice),
-      totalPrice: Number(totalPrice)
-    }).unwrap();
-
-    if (res && res._id) {
-      dispatch(clearCartItems());
-      toast.success('Order placed successfully');
-      navigate(`/order/${res._id}`);
-    }
-  } catch (err) {
-    toast.error(err?.data?.message || 'Failed to create order');
-  }
-};
-
-return (
-  <div className="min-h-screen 
-    font-mono py-20 px-4 sm:px-6 lg:px-8">
-    <div className="max-w-7xl mx-auto">
-      <ProgressSteps step1 step2 step3 step4 />
-      
-      {error && (
-        <div className="mt-8 p-4 bg-violet-200/90 border-2 border-pink-400 rounded-xl text-zinc-950 font-extrabold">
-          {error?.data?.message || 'Error placing order'}
+const OrderItem = ({ item }) => (
+  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
+    <img
+      src={item.image}
+      alt={item.name}
+      className="w-20 h-20 object-cover rounded-lg ring-1 ring-white/20"
+    />
+    <div className="flex-grow space-y-1">
+      <Link 
+        to={`/product/${item._id}`}
+        className="text-white hover:text-emerald-400 transition-colors font-medium"
+      >
+        {item.name}
+      </Link>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-gray-400">
+        <div>
+          <span className="text-gray-500">Qty:</span> {item.qty}
         </div>
-      )}
-
-      {cart.cartItems.length === 0 ? (
-        <div className="mt-8 p-4 bg-violet-200/90 border-2 border-pink-400 rounded-xl text-zinc-950 font-extrabold">
-          Your cart is empty
+        <div>
+          <span className="text-gray-500">Size:</span> {item.size}
         </div>
-      ) : (
-        <div className="mt-8 space-y-8">
-          {/* Order Items Table */}
-          <div className="bg-violet-200/90 backdrop-blur-md rounded-2xl border-2 border-pink-400 
-            overflow-hidden shadow-xl hover:border-yellow-300 transition-all duration-500">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b-2 border-pink-400">
-                    <th className="px-4 py-4 text-left text-zinc-950 font-extrabold">Product</th>
-                    <th className="px-4 py-4 text-left text-zinc-950 font-extrabold">Quantity</th>
-                    <th className="px-4 py-4 text-left text-zinc-950 font-extrabold">Size</th>
-                    <th className="px-4 py-4 text-left text-zinc-950 font-extrabold">Color</th>
-                    <th className="px-4 py-4 text-left text-zinc-950 font-extrabold">Price</th>
-                    <th className="px-4 py-4 text-left text-zinc-950 font-extrabold">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y-2 divide-pink-400">
-                  {cart.cartItems.map((item, index) => (
-                    <tr key={index} className="group hover:bg-violet-300/50 transition-colors">
-                      <td className="p-4 flex items-center space-x-4">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-16 h-16 object-cover rounded-lg ring-2 ring-pink-400 
-                            group-hover:ring-yellow-300 transition-all"
-                        />
-                        {console.log(item)}
-                        <Link 
-                          to={`/product/${item._id}`}
-                          className="text-zinc-950 font-extrabold hover:text-zinc-800 transition-colors"
-                        >
-                          {item.name}
-                        </Link>
-                      </td>
-                      <td className="p-4 text-zinc-950 font-extrabold">{item.qty}</td>
-                      <td className="p-4 text-zinc-950 font-extrabold">{item.size}</td>
-                      <td className="p-4 text-zinc-950 font-extrabold">{item.color}</td>
-                      <td className="p-4 text-zinc-950 font-extrabold">${item.price.toFixed(2)}</td>
-                      <td className="p-4 text-zinc-950 font-extrabold">${(item.qty * item.price).toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Order Summary */}
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Price Summary */}
-            <div className="bg-violet-200/90 backdrop-blur-md rounded-2xl border-2 border-pink-400 
-              p-6 hover:border-yellow-300 transition-all duration-500">
-              <h2 className="text-xl font-extrabold text-zinc-950 mb-4">Price Summary</h2>
-              <div className="space-y-3">
-                <div className="flex justify-between text-zinc-950 font-extrabold">
-                  <span>Items:</span>
-                  <span>${itemsPrice}</span>
-                </div>
-                <div className="flex justify-between text-zinc-950 font-extrabold">
-                  <span>Shipping:</span>
-                  <div className="text-right">
-                    <span>${shippingPrice}</span>
-                    {Number(itemsPrice) > 100 && (
-                      <span className="block text-sm text-zinc-950 font-extrabold">Free Shipping</span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex justify-between text-zinc-950 font-extrabold">
-                  <span>Tax (15%):</span>
-                  <span>${taxPrice}</span>
-                </div>
-                <div className="pt-3 border-t-2 border-pink-400">
-                  <div className="flex justify-between text-lg font-extrabold text-zinc-950">
-                    <span>Total:</span>
-                    <span>${totalPrice}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Shipping Details */}
-            <div className="bg-violet-200/90 backdrop-blur-md rounded-2xl border-2 border-pink-400 
-              p-6 hover:border-yellow-300 transition-all duration-500">
-              <h2 className="text-xl font-extrabold text-zinc-950 mb-4">Shipping Details</h2>
-              <div className="text-zinc-950 font-extrabold space-y-2">
-                <p>{cart.shippingAddress.address}</p>
-                <p>{cart.shippingAddress.city}, {cart.shippingAddress.postalCode}</p>
-                <p>{cart.shippingAddress.country}</p>
-              </div>
-            </div>
-
-            {/* Payment Method */}
-            <div className="bg-violet-200/90 backdrop-blur-md rounded-2xl border-2 border-pink-400 
-              p-6 hover:border-yellow-300 transition-all duration-500">
-              <h2 className="text-xl font-extrabold text-zinc-950 mb-4">Payment Method</h2>
-              <p className="text-zinc-950 font-extrabold">{cart.paymentMethod}</p>
-            </div>
-          </div>
-
-          {/* Place Order Button */}
-          <button
-            onClick={placeOrderHandler}
-            disabled={cart.cartItems.length === 0 || isLoading}
-            className="w-full py-4 px-6 mt-8 bg-gradient-to-r from-purple-900 to-indigo-900 
-              text-white font-bold rounded-xl shadow-lg 
-              border-2 border-pink-400 hover:border-yellow-300 
-              disabled:opacity-50 disabled:cursor-not-allowed
-              hover:shadow-pink-300/30 hover:scale-105 
-              transition-all duration-300 relative group"
-          >
-            <span className="relative z-10">
-              {isLoading ? 'Processing...' : 'Place Order'}
-            </span>
-            <div className="absolute inset-0 -z-10 bg-pink-500/20 blur-xl 
-              opacity-0 group-hover:opacity-100 transition-all duration-500" />
-          </button>
-
-          {isLoading && <Loader />}
+        <div>
+          <span className="text-gray-500">Color:</span> {item.color}
         </div>
-      )}
+        <div>
+          <span className="text-gray-500">Price:</span> ${item.price.toFixed(2)}
+        </div>
+      </div>
+    </div>
+    <div className="text-lg font-medium text-emerald-400">
+      ${(item.qty * item.price).toFixed(2)}
     </div>
   </div>
 );
+
+const SummaryCard = ({ title, children }) => (
+  <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10">
+    <h2 className="text-xl font-medium text-white mb-4">{title}</h2>
+    {children}
+  </div>
+);
+
+const PlaceOrder = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const cart = useSelector((state) => state.cart);
+  const { userInfo } = useSelector((state) => state.auth);
+
+  const [createOrder, { isLoading, error }] = useCreateOrderMutation();
+
+  const addDecimals = (num) => (Math.round(num * 100) / 100).toFixed(2);
+
+  const { itemsPrice, shippingPrice, taxPrice, totalPrice } = useMemo(() => {
+    const itemsPrice = addDecimals(
+      cart.cartItems.reduce((acc, item) => acc + item.price * item.qty, 0)
+    );
+    const shippingPrice = addDecimals(Number(itemsPrice) > 100 ? 0 : 10);
+    const taxPrice = addDecimals(Number((0.15 * itemsPrice).toFixed(2)));
+    const totalPrice = addDecimals(
+      Number(itemsPrice) + Number(shippingPrice) + Number(taxPrice)
+    );
+    return { itemsPrice, shippingPrice, taxPrice, totalPrice };
+  }, [cart.cartItems]);
+
+  useEffect(() => {
+    if (!userInfo) {
+      navigate('/login');
+    }
+    if (!cart.shippingAddress.address) {
+      navigate("/shipping");
+    } else if (!cart.paymentMethod) {
+      navigate("/payment");
+    }
+  }, [cart.shippingAddress.address, cart.paymentMethod, navigate, userInfo]);
+
+  const placeOrderHandler = async () => {
+    try {
+      if (!cart.cartItems || cart.cartItems.length === 0) {
+        toast.error('No items in cart');
+        return;
+      }
+
+      const orderItems = cart.cartItems.map(item => ({
+        name: item.name,
+        qty: item.qty,
+        image: item.image,
+        price: Number(item.price),
+        product: item.product || item._id,
+        size: item.size,
+        color: item.color
+      }));
+
+      const res = await createOrder({
+        orderItems,
+        shippingAddress: cart.shippingAddress,
+        paymentMethod: cart.paymentMethod,
+        itemsPrice: Number(itemsPrice),
+        taxPrice: Number(taxPrice),
+        shippingPrice: Number(shippingPrice),
+        totalPrice: Number(totalPrice)
+      }).unwrap();
+
+      if (res && res._id) {
+        dispatch(clearCartItems());
+        toast.success('Order placed successfully');
+        navigate(`/order/${res._id}`);
+      }
+    } catch (err) {
+      toast.error(err?.data?.message || 'Failed to create order');
+    }
+  };
+
+  return (
+    <div className="min-h-screen  text-white">
+      <div className="relative">
+        {/* Modern gradient background */}
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+        </div>
+
+        {/* Content */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
+          <ProgressSteps step1 step2 step3 step4 />
+
+          {error && (
+            <div className="mt-8 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400">
+              {error?.data?.message || 'Error placing order'}
+            </div>
+          )}
+
+          {cart.cartItems.length === 0 ? (
+            <div className="mt-8 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400">
+              Your cart is empty
+            </div>
+          ) : (
+            <div className="mt-8 space-y-8">
+              {/* Order Items */}
+              <div className="space-y-4">
+                <h2 className="text-2xl font-medium">Order Items</h2>
+                <div className="space-y-4">
+                  {cart.cartItems.map((item, index) => (
+                    <OrderItem key={index} item={item} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Summary Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Price Summary */}
+                <SummaryCard title="Price Summary">
+                  <div className="space-y-3 text-gray-300">
+                    <div className="flex justify-between">
+                      <span>Items</span>
+                      <span>${itemsPrice}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Shipping</span>
+                      <div className="text-right">
+                        <span>${shippingPrice}</span>
+                        {Number(itemsPrice) > 100 && (
+                          <span className="block text-sm text-emerald-400">Free Shipping</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Tax (15%)</span>
+                      <span>${taxPrice}</span>
+                    </div>
+                    <div className="pt-3 border-t border-white/10">
+                      <div className="flex justify-between text-lg text-white">
+                        <span>Total</span>
+                        <span>${totalPrice}</span>
+                      </div>
+                    </div>
+                  </div>
+                </SummaryCard>
+
+                {/* Shipping Details */}
+                <SummaryCard title="Shipping Details">
+                  <div className="text-gray-300 space-y-2">
+                    <p>{cart.shippingAddress.address}</p>
+                    <p>{cart.shippingAddress.city}, {cart.shippingAddress.postalCode}</p>
+                    <p>{cart.shippingAddress.country}</p>
+                  </div>
+                </SummaryCard>
+
+                {/* Payment Method */}
+                <SummaryCard title="Payment Method">
+                  <p className="text-gray-300">{cart.paymentMethod}</p>
+                </SummaryCard>
+              </div>
+
+              {/* Place Order Button */}
+              <button
+                onClick={placeOrderHandler}
+                disabled={cart.cartItems.length === 0 || isLoading}
+                className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-emerald-500 to-blue-500 
+                  text-white font-medium rounded-xl shadow-lg 
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  hover:shadow-emerald-500/20 hover:scale-[1.02]
+                  transition-all duration-300 relative group"
+              >
+                <span className="relative z-10">
+                  {isLoading ? 'Processing...' : 'Place Order'}
+                </span>
+                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-emerald-600 to-blue-600 
+                  opacity-0 group-hover:opacity-100 rounded-xl transition-opacity duration-300" />
+              </button>
+
+              {isLoading && <Loader />}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default PlaceOrder;

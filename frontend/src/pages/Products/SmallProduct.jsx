@@ -24,13 +24,13 @@ const SmallProduct = ({ product }) => {
                 <Link to={`product/${product._id}`}>
                     <div className="mt-4 space-y-2">
                         <div className="flex justify-between items-start gap-2">
-                            <h2 className="text-white text-lg font-medium tracking-wide 
-                                transition-colors duration-300 hover:text-purple-400 hover:cursor-pointer
+                            <h2 className="text-white text-lg font-medium font-sans tracking-wide 
+                                transition-colors duration-300 hover:text-gray-400 hover:cursor-pointer
                                 line-clamp-2">
                                 {product.name}
                             </h2>
-                            <span className="bg-purple-500/10 text-purple-400 px-3 py-1 
-                                rounded-full text-sm font-bold whitespace-nowrap">
+                            <span className="bg-purple-500/10 text-gray-400 px-3 py-1 
+                                rounded-full text-sm font-bold font-sans whitespace-nowrap">
                                 $ {product.price}
                             </span>
                         </div>
