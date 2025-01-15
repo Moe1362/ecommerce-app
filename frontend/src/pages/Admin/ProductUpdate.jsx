@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { motion } from "framer-motion";
 import {
   useUpdateProductMutation,
   useDeleteProductMutation,
@@ -9,24 +10,26 @@ import {
 } from "../../redux/api/productApiSlice.js";
 import { useFetchCategoriesQuery } from "../../redux/api/categoryApiSlice.js";
 import AdminMenu from "./AdminMenu.jsx";
+import { Trash2, Upload } from "lucide-react";
+
+const SIZES = ["XS", "S", "M", "L", "XL"]; 
+const COLORS = ["Black", "White", "Red", "Blue", "Green"];
 
 const ProductUpdate = () => {
   const params = useParams();
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const { data: formData } = useGetProductByIdQuery(params.id);
 
-  const [image, setImage] = useState(formData?.image || "");
-  const [name, setName] = useState(formData?.name || "");
-  const [description, setDescription] = useState(formData?.description || "");
-  const [price, setPrice] = useState(formData?.price || "");
-  const [category, setCategory] = useState(formData?.category || "");
-  const [quantity, setQuantity] = useState(formData?.quantity || "");
-  const [brand, setBrand] = useState(formData?.brand || "");
-  const [stock, setStock] = useState(formData?.countInStock);
-  const [color, setColor] = useState(formData?.color || "");
-  const [size, setSize] = useState(formData?.size || "");
-
-  const navigate = useNavigate();
+  const [images, setImages] = useState([]);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [category, setCategory] = useState("");
+  const [stock, setStock] = useState(0);
+  const [color, setColor] = useState("");
+  const [size, setSize] = useState("");
 
   const { data: categories = [] } = useFetchCategoriesQuery();
 
@@ -34,66 +37,150 @@ const ProductUpdate = () => {
   const [updateProduct] = useUpdateProductMutation();
   const [deleteProduct] = useDeleteProductMutation();
 
+  // Initialize form data when product data is loaded
   useEffect(() => {
     if (formData && formData._id) {
-      setImage(formData.image || "");
+      // Initialize images from existing product images
+      setImages(formData.images || []);
       setName(formData.name || "");
       setDescription(formData.description || "");
       setPrice(formData.price || "");
       setCategory(formData.category || "");
-      setQuantity(formData.quantity || "");
-      setBrand(formData.brand || "");
-      setStock(formData.countInStock || "");
+      setStock(formData.countInStock || 0);
       setColor(formData.color || "");
       setSize(formData.size || "");
     }
   }, [formData]);
 
+  // File upload handler for multiple images
   const uploadFileHandler = async (e) => {
-    const formData = new FormData();
-    formData.append("image", e.target.files[0]);
+    const newFiles = Array.from(e.target.files);
+    
+    // Validate file types and limit
+    const validImageFiles = newFiles.filter(file => 
+      ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+    );
+
+    if (validImageFiles.length + images.length > 5) {
+      toast.error("Maximum 5 images allowed");
+      return;
+    }
+
     try {
-      const res = await uploadProductImage(formData).unwrap();
-      toast.success("Image uploaded successfully");
-      setImage(res.image);
+      // Optional: Pre-upload processing
+      const processedFiles = await Promise.all(
+        validImageFiles.map(async (file) => {
+          const img = await createImageBitmap(file);
+          
+          // Optional: Resize image
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1000;
+          const MAX_HEIGHT = 1000;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          return new Promise((resolve) => {
+            canvas.toBlob((blob) => {
+              resolve(new File([blob], file.name, { type: file.type }));
+            }, file.type);
+          });
+        })
+      );
+
+      setImages(prevImages => [...prevImages, ...processedFiles]);
     } catch (error) {
-      toast.error("Image upload failed");
+      console.error("Image processing error:", error);
+      toast.error("Image processing failed");
     }
   };
 
+  // Remove image from the list
+  const removeImage = (indexToRemove) => {
+    setImages(prevImages => 
+      prevImages.filter((_, index) => index !== indexToRemove)
+    );
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    // Validation
+    if (!name || !description || !price || !category) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+  
+    if (images.length === 0) {
+      toast.error("Please upload at least one product image");
+      return;
+    }
+  
     try {
-      const formData = new FormData();
-      formData.append("image", image);
-      formData.append("name", name);
-      formData.append("description", description);
-      formData.append("price", price);
-      formData.append("category", category);
-      formData.append("quantity", quantity);
-      formData.append("brand", brand);
-      formData.append("countInStock", stock);
-      formData.append("color", color);
-      formData.append("size", size);
-
+      const productData = new FormData();
+      
+      // Append text fields
+      productData.append("name", name);
+      productData.append("description", description);
+      productData.append("price", price);
+      productData.append("category", category);
+      productData.append("countInStock", stock);
+      
+      // Append optional fields
+      if (color) productData.append("color", color);
+      if (size) productData.append("size", size);
+  
+      // Append multiple images
+      images.forEach((image) => {
+        // Check if image is a string (existing image URL) or a File object
+        if (typeof image === 'string') {
+          productData.append('existingImages', image);
+        } else {
+          productData.append('images', image);
+        }
+      });
+  
+      // Log the content of FormData for debugging
+      for (let [key, value] of productData.entries()) {
+        console.log(`${key}: `, value);
+      }
+  
       const result = await updateProduct({
         productId: params.id,
-        formData
+        productData
       }).unwrap();
-
+  
       if (result._id) {
         toast.success("Product updated successfully");
         navigate("/admin/allproductslist");
+        console.log("Updated product:", result);
       } else {
         toast.error("Update failed");
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Update failed");
+      console.error("Full error:", error);
+      toast.error(error?.data?.message || "Update failed");
     }
   };
 
+  // Handle product deletion
   const handleDelete = async () => {
     try {
       let answer = window.confirm(
@@ -137,61 +224,64 @@ const ProductUpdate = () => {
 
               <div className="p-6">
                 <form onSubmit={handleSubmit}>
-                  {/* Image Section */}
+                  {/* Multiple Image Upload Section */}
                   <div className="mb-8">
-                    <h2 className="text-lg font-semibold mb-4">Product Image</h2>
+                    <h2 className="text-lg font-semibold mb-4">Product Images</h2>
                     <div className="bg-gray-900 rounded-xl p-4">
-                      {image && (
-                        <div className="relative group mb-4">
-                          <img
-                            src={image}
-                            alt="product"
-                            className="w-full max-h-[300px] object-contain rounded-lg"
-                          />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 
-                            transition-opacity duration-300 rounded-lg flex items-center justify-center">
-                            <label className="bg-pink-600 text-white px-4 py-2 rounded-lg cursor-pointer 
-                              hover:bg-pink-700 transition-colors">
-                              Change Image
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={uploadFileHandler}
-                                className="hidden"
-                              />
-                            </label>
-                          </div>
-                        </div>
-                      )}
+                      <div className="grid grid-cols-5 gap-4">
+                        {/* Image Upload Placeholder */}
+                        {images.length < 5 && (
+                          <motion.div 
+                            onClick={() => fileInputRef.current.click()}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="border-2 border-dashed border-gray-700 rounded-lg p-4 
+                            flex flex-col items-center justify-center cursor-pointer 
+                            hover:border-pink-500 transition-colors duration-300 
+                            aspect-square"
+                          >
+                            <Upload className="w-12 h-12 text-gray-400 mb-2" />
+                            <span className="text-gray-400 text-xs text-center">
+                              Add Image
+                            </span>
+                          </motion.div>
+                        )}
 
-                      {!image && (
-                        <label className="border-2 border-dashed border-gray-700 rounded-xl p-8 
-                          flex flex-col items-center justify-center cursor-pointer
-                          hover:border-pink-500 transition-all duration-300">
-                          <div className="bg-gray-800 p-4 rounded-full mb-4">
-                            <svg 
-                              className="w-8 h-8 text-pink-500"
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
+                        {/* Uploaded Images */}
+                        {images.map((image, index) => (
+                          <motion.div 
+                            key={index} 
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="relative group"
+                          >
+                            <img
+                              src={typeof image === 'string' ? image : URL.createObjectURL(image)}
+                              alt={`product-${index}`}
+                              className="w-full aspect-square object-cover rounded-lg"
+                            />
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={() => removeImage(index)}
+                              className="absolute top-2 right-2 bg-red-500 text-white 
+                              p-1 rounded-full opacity-0 group-hover:opacity-100 
+                              transition-opacity duration-300"
                             >
-                              <path 
-                                strokeLinecap="round" 
-                                strokeLinejoin="round" 
-                                strokeWidth={2} 
-                                d="M12 4v16m8-8H4"
-                              />
-                            </svg>
-                          </div>
-                          <span className="text-gray-400 text-sm">Click to upload product image</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={uploadFileHandler}
-                            className="hidden"
-                          />
-                        </label>
-                      )}
+                              <Trash2 className="w-4 h-4" />
+                            </motion.button>
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={uploadFileHandler}
+                        multiple
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                      />
                     </div>
                   </div>
 
@@ -229,7 +319,7 @@ const ProductUpdate = () => {
                         />
                       </div>
 
-                      <div>
+                      {/* <div>
                         <label className="block text-gray-400 text-sm font-medium mb-2">
                           Quantity
                         </label>
@@ -242,9 +332,9 @@ const ProductUpdate = () => {
                             transition-all duration-300"
                           placeholder="Enter quantity"
                         />
-                      </div>
+                      </div> */}
 
-                      <div>
+                      {/* <div>
                         <label className="block text-gray-400 text-sm font-medium mb-2">
                           Brand
                         </label>
@@ -257,7 +347,7 @@ const ProductUpdate = () => {
                             transition-all duration-300"
                           placeholder="Enter brand name"
                         />
-                      </div>
+                      </div> */}
                     </div>
                   </div>
 

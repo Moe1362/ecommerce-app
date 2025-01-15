@@ -1,20 +1,18 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { motion } from "framer-motion";
 import {
   useCreateProductMutation,
   useUploadProductImageMutation,
 } from "../../redux/api/productApiSlice";
 import { useFetchCategoriesQuery } from "../../redux/api/categoryApiSlice";
 import AdminMenu from "./AdminMenu";
-import { Trash2, Upload, Plus } from "lucide-react";
 
 const SIZES = ["XS", "S", "M", "L", "XL"]; 
 const COLORS = ["Black", "White", "Red", "Blue", "Green"];
 
 const ProductList = () => {
-  const [images, setImages] = useState([]);
+  const [image, setImage] = useState(null);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
@@ -24,8 +22,7 @@ const ProductList = () => {
   const [stock, setStock] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
-  
-  const fileInputRef = useRef(null);
+  const [imageUrl, setImageUrl] = useState(null);
   const navigate = useNavigate();
 
   const [uploadProductImage] = useUploadProductImageMutation();
@@ -36,21 +33,9 @@ const ProductList = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
-    if (!name || !description || !price || !category || !brand) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
-    if (images.length === 0) {
-      toast.error("Please upload at least one product image");
-      return;
-    }
-
     try {
       const productData = new FormData();
-      
-      // Append text fields
+      productData.append("image", image);
       productData.append("name", name);
       productData.append("description", description);
       productData.append("price", price);
@@ -58,15 +43,8 @@ const ProductList = () => {
       productData.append("quantity", quantity);
       productData.append("brand", brand);
       productData.append("countInStock", stock);
-      
-      // Append optional fields
-      if (selectedSize) productData.append("size", selectedSize);
-      if (selectedColor) productData.append("color", selectedColor);
-
-      // Append multiple images
-      images.forEach((image) => {
-        productData.append('images', image);
-      });
+      productData.append("size", selectedSize);
+      productData.append("color", selectedColor);
 
       const { data } = await createProduct(productData);
 
@@ -83,69 +61,17 @@ const ProductList = () => {
   };
 
   const uploadFileHandler = async (e) => {
-    const newFiles = Array.from(e.target.files);
-    
-    // Validate file types and limit
-    const validImageFiles = newFiles.filter(file => 
-      ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
-    );
-
-    if (validImageFiles.length + images.length > 5) {
-      toast.error("Maximum 5 images allowed");
-      return;
-    }
+    const formData = new FormData();
+    formData.append("image", e.target.files[0]);
 
     try {
-      // Optional: Pre-upload validation and processing
-      const uploadPromises = validImageFiles.map(async (file) => {
-        // Optional: Additional file processing or validation
-        const img = await createImageBitmap(file);
-        
-        // Optional: Resize or compress image
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1000;
-        const MAX_HEIGHT = 1000;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Convert canvas to blob
-        return new Promise((resolve) => {
-          canvas.toBlob((blob) => {
-            resolve(new File([blob], file.name, { type: file.type }));
-          }, file.type);
-        });
-      });
-
-      const processedFiles = await Promise.all(uploadPromises);
-      
-      setImages(prevImages => [...prevImages, ...processedFiles]);
+      const res = await uploadProductImage(formData).unwrap();
+      toast.success("Image uploaded successfully");
+      setImage(res.image);
+      setImageUrl(res.image);
     } catch (error) {
-      console.error("Image processing error:", error);
-      toast.error("Image processing failed");
+      toast.error(error?.data?.message || error.error);
     }
-  };
-
-  const removeImage = (indexToRemove) => {
-    setImages(prevImages => 
-      prevImages.filter((_, index) => index !== indexToRemove)
-    );
   };
 
   return (
@@ -168,65 +94,72 @@ const ProductList = () => {
               </div>
 
               <div className="py-6">
-                {/* Multiple Image Upload Section */}
+                {/* Image Upload Section */}
                 <div className="mb-4">
                   <label className="block text-gray-400 text-sm font-medium mb-2">
-                    Product Images (Max 5)
+                    Product Image
                   </label>
-                  <div className="grid grid-cols-5 gap-4">
-                    {/* Image Upload Placeholder */}
-                    {images.length < 5 && (
-                      <motion.div 
-                        onClick={() => fileInputRef.current.click()}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="border-2 border-dashed border-gray-700 rounded-lg p-4 
-                        flex flex-col items-center justify-center cursor-pointer 
-                        hover:border-pink-500 transition-colors duration-300 
-                        aspect-square"
+                  {imageUrl ? (
+                    <div className="relative group">
+                      <img
+                        src={imageUrl}
+                        alt="product"
+                        className="w-full max-h-[300px] object-contain rounded-lg border-2 border-gray-700"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
+                        <label className="bg-pink-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-pink-700 transition-colors duration-300">
+                          Change Image
+                          <input
+                            type="file"
+                            onChange={uploadFileHandler}
+                            className="hidden"
+                            accept="image/*"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  ) : (
+                    <label className="border-2 border-dashed border-gray-700 rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer hover:border-pink-500 transition-colors duration-300">
+                      <svg
+                        className="w-12 h-12 text-gray-400 mb-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
-                        <Upload className="w-12 h-12 text-gray-400 mb-2" />
-                        <span className="text-gray-400 text-xs text-center">
-                          Add Image
-                        </span>
-                      </motion.div>
-                    )}
-
-                    {/* Uploaded Images */}
-                    {images.map((image, index) => (
-                      <motion.div 
-                        key={index} 
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="relative group"
-                      >
-                        <img
-                          src={URL.createObjectURL(image)}
-                          alt={`product-${index}`}
-                          className="w-full aspect-square object-cover rounded-lg"
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                         />
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 bg-red-500 text-white 
-                          p-1 rounded-full opacity-0 group-hover:opacity-100 
-                          transition-opacity duration-300"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </motion.button>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={uploadFileHandler}
-                    multiple
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                  />
+                      </svg>
+                      <span className="text-gray-400">Click to upload image</span>
+                      <input
+                        type="file"
+                        onChange={uploadFileHandler}
+                        className="hidden"
+                        accept="image/*"
+                      />
+                      <input
+                        type="file"
+                        onChange={uploadFileHandler}
+                        className="hidden"
+                        accept="image/*"
+                      />
+                      <input
+                        type="file"
+                        onChange={uploadFileHandler}
+                        className="hidden"
+                        accept="image/*"
+                      />
+                      <input
+                        type="file"
+                        onChange={uploadFileHandler}
+                        className="hidden"
+                        accept="image/*"
+                      />
+                    </label>
+                  )}
                 </div>
               </div>
 
@@ -249,7 +182,6 @@ const ProductList = () => {
                         onChange={(e) => setName(e.target.value)}
                         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300"
                         placeholder="Enter product name"
-                        required
                       />
                     </div>
 
@@ -266,9 +198,6 @@ const ProductList = () => {
                           onChange={(e) => setPrice(e.target.value)}
                           className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-8 pr-4 py-3 text-white focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300"
                           placeholder="0.00"
-                          required
-                          step="0.01"
-                          min="0"
                         />
                       </div>
                     </div>
@@ -284,7 +213,6 @@ const ProductList = () => {
                         onChange={(e) => setBrand(e.target.value)}
                         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300"
                         placeholder="Enter brand name"
-                        required
                       />
                     </div>
 
@@ -294,10 +222,8 @@ const ProductList = () => {
                         Category
                       </label>
                       <select
-                        value={category}
                         onChange={(e) => setCategory(e.target.value)}
                         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300"
-                        required
                       >
                         <option value="">Select Category</option>
                         {categories?.map((c) => (
@@ -366,7 +292,6 @@ const ProductList = () => {
                         onChange={(e) => setQuantity(e.target.value)}
                         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300"
                         placeholder="Enter quantity"
-                        min="0"
                       />
                     </div>
 
@@ -381,7 +306,6 @@ const ProductList = () => {
                         onChange={(e) => setStock(e.target.value)}
                         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-300"
                         placeholder="Enter stock amount"
-                        min="0"
                       />
                     </div>
                   </div>

@@ -47,12 +47,47 @@ export const productApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["Product"],
     }),
     updateProduct: builder.mutation({
-      query: ({ productId, formData }) => ({
-        url: `${PRODUCT_URL}/${productId}`,
-        method: "PUT",
-        body: formData,
-      }),
-      invalidatesTags: ["Products"],
+      query: ({ productId, productData }) => {
+        // If productData is already a FormData, use it directly
+        if (productData instanceof FormData) {
+          return {
+            url: `${PRODUCT_URL}/${productId}`,
+            method: "PUT",
+            body: productData,
+          };
+        }
+    
+        // Otherwise, create a new FormData
+        const formData = new FormData();
+        
+        // Append text fields
+        Object.keys(productData).forEach(key => {
+          if (key !== 'images' && key !== 'existingImages') {
+            formData.append(key, productData[key]);
+          }
+        });
+    
+        // Append new images
+        if (productData.images && productData.images.length > 0) {
+          productData.images.forEach((image, index) => {
+            formData.append('images', image);
+          });
+        }
+    
+        // Append existing image URLs
+        if (productData.existingImages && productData.existingImages.length > 0) {
+          productData.existingImages.forEach((imageUrl, index) => {
+            formData.append('existingImages', imageUrl);
+          });
+        }
+    
+        return {
+          url: `${PRODUCT_URL}/${productId}`,
+          method: "PUT",
+          body: formData,
+        };
+      },
+      invalidatesTags: ["Product"],
     }),
     uploadProductImage: builder.mutation({
       query: (data) => ({

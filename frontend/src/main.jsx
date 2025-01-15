@@ -36,6 +36,8 @@ import Order from "./pages/Orders/Order.jsx";
 import UserOrder from "./User/UserOrder.jsx";
 import OrderList from "./pages/Admin/OrderList.jsx";
 import AdminDashboard from "./pages/Admin/AdminDashboard.jsx";
+import About from "./pages/About.jsx";
+
 
 // Custom hook for scrolling to top
 const useScrollToTop = () => {
@@ -75,6 +77,7 @@ const router = createBrowserRouter(
       <Route path="/product/:id" element={<ProductDetails />} />
       <Route path="/cart" element={<Cart />} />
       <Route path="/shop" element={<Shop />} />
+      <Route path="/about" element={<About />} />
       <Route path="/user-orders" element={<UserOrder />} />
       <Route path="" element={<PrivateRoute />}>
         <Route path="/profile" element={<Profile />} />
